@@ -62,8 +62,8 @@
  *      - ACTION_LOAD_FROM_CACHE
  */
 
-#ifndef TIME_STATS_HPP
-#define TIME_STATS_HPP
+#ifndef REACT_HPP
+#define REACT_HPP
 
 #include <stack>
 #include <chrono>
@@ -710,4 +710,4 @@ private:
 
 }}
 
-#endif // TIME_STATS_HPP
+#endif // REACT_HPP
