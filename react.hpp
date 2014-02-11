@@ -73,6 +73,7 @@
 #include <iostream>
 #include <vector>
 #include <mutex>
+#include <sstream>
 
 #include "rapidjson/document.h"
 #include "rapidjson/writer.h"
@@ -268,6 +269,14 @@ public:
 			return add_new_link(node, action_code);
 		}
 		return link->second;
+	}
+
+	/*!
+	 * \brief Returns actions set monitored by this tree
+	 * \return Actions set monitored by this tree
+	 */
+	const actions_set_t& get_actions_set() const {
+		return actions_set;
 	}
 
 	/*!
@@ -486,7 +495,11 @@ public:
 	 */
 	~time_stats_updater_t() {
 		if (depth != 0) {
-			std::cerr << "~time_stats_updater(): extra measurements" << std::endl;
+			std::cerr << "~time_stats_updater(): extra measurements:" << std::endl;
+			while (!measurements.empty()) {
+				std::cerr << get_current_node_action_name() << std::endl;
+				pop_measurement();
+			}
 		}
 		std::lock_guard<concurrent_time_stats_tree_t> guard(*time_stats_tree);
 
@@ -552,8 +565,11 @@ public:
 
 		std::lock_guard<concurrent_time_stats_tree_t> guard(*time_stats_tree);
 
-		if (time_stats_tree->get_time_stats_tree().get_node_action_code(current_node) != action_code) {
-			throw std::logic_error("Stopping wrong action");
+		int expected_code = time_stats_tree->get_time_stats_tree().get_node_action_code(current_node);
+		if (expected_code != action_code) {
+			std::string expected_action_name = get_action_name(expected_code);
+			std::string found_action_name = get_action_name(action_code);
+			throw std::logic_error("Stopping wrong action. Expected: " + expected_action_name + ", Found: " + found_action_name);
 		}
 		pop_measurement();
 	}
@@ -576,6 +592,22 @@ public:
 	 */
 	size_t get_depth() const {
 		return depth;
+	}
+
+	/*!
+	 * \brief Returns name of action with \a action_code
+	 * \return Name of action with \a action_code
+	 */
+	std::string get_action_name(int action_code) const {
+		return time_stats_tree->get_time_stats_tree().get_actions_set().get_action_name(action_code);
+	}
+
+	/*!
+	 * \brief Returns name of action in current node
+	 * \return Current's node action name
+	 */
+	std::string get_current_node_action_name() const {
+		return get_action_name(time_stats_tree->get_time_stats_tree().get_node_action_code(current_node));
 	}
 
 private:
@@ -684,7 +716,7 @@ public:
 	 */
 	void stop() {
 		if (is_stopped) {
-			throw std::logic_error("action is already stopped");
+			throw std::logic_error("action " + updater->get_action_name(action_code) + " is already stopped");
 		}
 
 		updater->stop(action_code);
