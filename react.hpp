@@ -14,7 +14,7 @@
 */
 
 /*!
- * \file time_stats.hpp
+ * \file react.hpp
  * \brief Tools for time monitoring
  *
  * This file contains tools for detailed time monitoring,
@@ -78,7 +78,7 @@
 #include "rapidjson/writer.h"
 #include "rapidjson/stringbuffer.h"
 
-namespace ioremap { namespace cache {
+namespace ioremap { namespace react {
 
 /*!
  * \brief Represents set of actions that allows defining new actions and resolving action's names by their codes
