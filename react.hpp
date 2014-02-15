@@ -435,6 +435,17 @@ public:
 		return time_stats_tree;
 	}
 
+	/*!
+	 * \brief Returns copy of inner time stats tree
+	 * \return Copy of inner time stats tree
+	 */
+	time_stats_tree_t copy_time_stats_tree() const {
+		lock();
+		time_stats_tree_t time_stats_tree_copy = time_stats_tree;
+		unlock();
+		return time_stats_tree_copy;
+	}
+
 private:
 	/*!
 	 * \brief Lock to handle concurrency during updates
