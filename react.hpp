@@ -439,7 +439,7 @@ public:
 	 * \brief Returns copy of inner time stats tree
 	 * \return Copy of inner time stats tree
 	 */
-	time_stats_tree_t copy_time_stats_tree() const {
+	time_stats_tree_t copy_time_stats_tree() {
 		lock();
 		time_stats_tree_t time_stats_tree_copy = time_stats_tree;
 		unlock();
