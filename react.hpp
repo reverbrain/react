@@ -32,12 +32,12 @@
  *      time_stats_updater_t updater(time_stats); // Updater for gathering of statistics.
  *
  *      void cache_read(...) {
- *          action_guard(updater, ACTION_READ); // Creates new guard and starts action which will be stopped on guard's destructor
+ *          action_guard(&updater, ACTION_READ); // Creates new guard and starts action which will be stopped on guard's destructor
  *          updater.start(ACTION_FIND); // Starts new action which will be inner to ACTION_READ
  *          found = find_record(...);
  *          updater.stop(ACTION_FIND);
  *          if (!found) {
- *              action_guard(updater, ACTION_READ_FROM_DISK);
+ *              action_guard(&updater, ACTION_READ_FROM_DISK);
  *              updater.start(ACTION_LOAD_FROM_DISK);
  *              data = read_from_disk(...);
  *              updater.stop(ACTION_LOAD_FROM_DISK);
@@ -77,6 +77,7 @@
 
 #include "rapidjson/document.h"
 #include "rapidjson/writer.h"
+#include "rapidjson/prettywriter.h"
 #include "rapidjson/stringbuffer.h"
 
 namespace ioremap { namespace react {
@@ -323,7 +324,9 @@ private:
 	rapidjson::Value& to_json(p_node_t current_node, rapidjson::Value &stat_value,
 							  rapidjson::Document::AllocatorType &allocator) const {
 
-		stat_value.AddMember("time", (int64_t) get_node_time(current_node), allocator);
+		if (current_node != root) {
+			stat_value.AddMember("time", (int64_t) get_node_time(current_node), allocator);
+		}
 
 		for (auto it = nodes[current_node].links.begin(); it != nodes[current_node].links.end(); ++it) {
 			p_node_t next_node = it->second;
