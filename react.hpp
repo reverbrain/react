@@ -32,12 +32,12 @@
  *      time_stats_updater_t updater(time_stats); // Updater for gathering of statistics.
  *
  *      void cache_read(...) {
- *          action_guard(&updater, ACTION_READ); // Creates new guard and starts action which will be stopped on guard's destructor
+ *          action_guard read_guard(&updater, ACTION_READ); // Creates new guard and starts action which will be stopped on guard's destructor
  *          updater.start(ACTION_FIND); // Starts new action which will be inner to ACTION_READ
  *          found = find_record(...);
  *          updater.stop(ACTION_FIND);
  *          if (!found) {
- *              action_guard(&updater, ACTION_READ_FROM_DISK);
+ *              action_guard read_from_disk_guard(&updater, ACTION_READ_FROM_DISK);
  *              updater.start(ACTION_LOAD_FROM_DISK);
  *              data = read_from_disk(...);
  *              updater.stop(ACTION_LOAD_FROM_DISK);
