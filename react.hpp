@@ -164,6 +164,11 @@ public:
 	typedef size_t p_node_t;
 
 	/*!
+	 * \brief Value for representing null pointer
+	 */
+	static const p_node_t NO_NODE = -1;
+
+	/*!
 	 * \brief Struct that stores single node that represents action in call tree.
 	 *
 	 * Action is characterized by it's code(name) and total time consumed by this action.
@@ -490,7 +495,7 @@ public:
 	 */
 	time_stats_updater_t(const size_t max_depth = DEFAULT_DEPTH):
 		current_node(0), time_stats_tree(NULL), depth(0), max_depth(max_depth) {
-		measurements.emplace(std::chrono::system_clock::now(), NULL);
+		measurements.emplace(std::chrono::system_clock::now(), +time_stats_tree_t::NO_NODE);
 	}
 
 	/*!
@@ -501,7 +506,7 @@ public:
 	time_stats_updater_t(concurrent_time_stats_tree_t &time_stats_tree,
 						 const size_t max_depth = DEFAULT_DEPTH): max_depth(max_depth) {
 		set_time_stats_tree(time_stats_tree);
-		measurements.emplace(std::chrono::system_clock::now(), NULL);
+		measurements.emplace(std::chrono::system_clock::now(), +time_stats_tree_t::NO_NODE);
 	}
 
 	/*!
