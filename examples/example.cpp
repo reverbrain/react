@@ -15,9 +15,9 @@
 
 #include <thread>
 
-#include "../react.hpp"
+#include "react/react.hpp"
 
-using namespace ioremap::react;
+using namespace react;
 
 actions_set_t actions_set; // Define set of actions that will be monitored
 const int ACTION_READ = actions_set.define_new_action("READ");
@@ -27,8 +27,11 @@ const int ACTION_READ_FROM_DISK = actions_set.define_new_action("READ FROM DISK"
 const int ACTION_PUT_INTO_CACHE = actions_set.define_new_action("PUT INTO CACHE");
 const int ACTION_LOAD_FROM_CACHE = actions_set.define_new_action("LOAD FROM CACHE");
 
-concurrent_time_stats_tree_t time_stats(actions_set); // Call tree for storing statistics.
-time_stats_updater_t updater(time_stats); // Updater for gathering of statistics.
+typedef concurrent_call_tree_t<call_tree_t> concurrent_time_stats_tree_t;
+typedef call_tree_updater_t<call_tree_t> time_stats_updater_t;
+typedef action_guard<call_tree_t> time_stats_action_guard;
+
+time_stats_updater_t updater; // Updater for gathering of statistics.
 
 // Defining stub functions
 bool find_record() {
@@ -37,27 +40,27 @@ bool find_record() {
 }
 
 std::string read_from_disk() {
-	action_guard read_from_disk_guard(&updater, ACTION_READ_FROM_DISK);
+	time_stats_action_guard read_from_disk_guard(updater, ACTION_READ_FROM_DISK);
 
 	std::this_thread::sleep_for( std::chrono::microseconds(1000) );
 	return "DISK";
 }
 
 void put_into_cache(std::string data) {
-	action_guard put_into_cache_guard(&updater, ACTION_PUT_INTO_CACHE);
+	time_stats_action_guard put_into_cache_guard(updater, ACTION_PUT_INTO_CACHE);
 
 	std::this_thread::sleep_for( std::chrono::microseconds(50) );
 }
 
 std::string load_from_cache() {
-	action_guard load_from_cache_guard(&updater, ACTION_LOAD_FROM_CACHE);
+	time_stats_action_guard load_from_cache_guard(updater, ACTION_LOAD_FROM_CACHE);
 
 	std::this_thread::sleep_for( std::chrono::microseconds(25) );
 	return "CACHE";
 }
 
 std::string cache_read() {
-	action_guard read_guard(&updater, ACTION_READ); // Creates new guard and starts action which will be stopped on guard's destructor
+	time_stats_action_guard read_guard(updater, ACTION_READ); // Creates new guard and starts action which will be stopped on guard's destructor
 
 	std::string data;
 
@@ -66,7 +69,7 @@ std::string cache_read() {
 	updater.stop(ACTION_FIND);
 
 	if (!found) {
-		action_guard load_from_disk_guard(&updater, ACTION_LOAD_FROM_DISK);
+		time_stats_action_guard load_from_disk_guard(updater, ACTION_LOAD_FROM_DISK);
 
 		data = read_from_disk();
 		put_into_cache(data);
@@ -77,12 +80,13 @@ std::string cache_read() {
 	return data;
 }
 
-void print_json() {
+template<typename TreeType>
+void print_json(const TreeType &time_stats) {
 	rapidjson::Document doc;
 	doc.SetObject();
 	auto &allocator = doc.GetAllocator();
 
-	time_stats.copy_time_stats_tree().to_json(doc, allocator);
+	time_stats.to_json(doc, allocator);
 
 	rapidjson::StringBuffer buffer;
 	rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buffer);
@@ -95,10 +99,17 @@ const int ITERATIONS_NUMBER = 1000;
 
 void run_example() {
 	std::cout << "Running cache read " << ITERATIONS_NUMBER << " times" << std::endl;
+
+	unordered_call_tree_t total_time_stats(actions_set);
+
 	for (int i = 0; i < ITERATIONS_NUMBER; ++i) {
+		concurrent_time_stats_tree_t time_stats(actions_set); // Call tree for storing statistics.
+		updater.set_time_stats_tree(time_stats);
 		std::string data = cache_read();
+		time_stats.get_time_stats_tree().merge_into(total_time_stats);
 	}
-	print_json();
+
+	print_json(total_time_stats);
 }
 
 int main() {

@@ -14,11 +14,14 @@
 */
 
 #include "react_c.h"
-#include "../../react.hpp"
+#include "react/react.hpp"
 
 #include <stdexcept>
 
-using namespace ioremap::react;
+using namespace react;
+
+typedef concurrent_call_tree_t<unordered_call_tree_t> concurrent_time_stats_tree_t;
+typedef call_tree_updater_t<unordered_call_tree_t> time_stats_updater_t;
 
 __thread time_stats_updater_t *thread_time_stats_updater;
 
