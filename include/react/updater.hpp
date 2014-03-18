@@ -67,7 +67,7 @@ public:
 	/*!
 	 * \brief Checks if all actions were correctly finished.
 	 */
-	~call_tree_updater_t() {
+	virtual ~call_tree_updater_t() {
 		if (depth != 0) {
 			std::cerr << "~time_stats_updater(): extra measurements:" << std::endl;
 			while (!measurements.empty()) {
@@ -104,7 +104,7 @@ public:
 	 * \brief Starts new branch in tree with action \a action_code
 	 * \param action_code Code of new action
 	 */
-	void start(const int action_code) {
+	virtual void start(const int action_code) {
 		start(action_code, std::chrono::system_clock::now());
 	}
 
@@ -131,7 +131,7 @@ public:
 	 * \brief Stops last action. Updates total consumed time in call-tree.
 	 * \param action_code Code of finished action
 	 */
-	void stop(const int action_code) {
+	virtual void stop(const int action_code) {
 		if (get_depth() > max_depth) {
 			--depth;
 			return;
@@ -262,28 +262,45 @@ private:
 	static const size_t DEFAULT_DEPTH = -1;
 };
 
+template<typename TreeType>
+class dummy_call_tree_updater_t : public call_tree_updater_t<TreeType> {
+public:
+	dummy_call_tree_updater_t() {}
+	~dummy_call_tree_updater_t() {}
+
+	void start(int) {}
+	void stop(int) {}
+};
+
 /*!
  * \brief Auxiliary class for logging actions with variable place of stop time (branching/end of function/end of scope)
  */
 template<typename TreeType>
-class action_guard {
+class action_guard_base_t {
 public:
 	/*!
 	 * \brief Initializes guard and starts action with \a action_code
 	 * \param updater Updater whos start is called
 	 * \param action_code Code of new action
 	 */
-	action_guard(call_tree_updater_t<TreeType> &updater, const int action_code):
+	action_guard_base_t(call_tree_updater_t<TreeType> *updater, const int action_code):
 		updater(updater), action_code(action_code), is_stopped(false) {
-		updater.start(action_code);
+		if (updater) {
+			updater->start(action_code);
+		}
+	}
+
+	action_guard_base_t(action_guard_base_t<TreeType> &&rhs): updater(rhs.updater), action_code(rhs.action_code), is_stopped(rhs.is_stopped) {
+		rhs.updater = NULL;
+		rhs.is_stopped = true;
 	}
 
 	/*!
 	 * \brief Stops action if it is not already stopped
 	 */
-	~action_guard() {
-		if (!is_stopped) {
-			updater.stop(action_code);
+	~action_guard_base_t() {
+		if (!is_stopped && updater) {
+			updater->stop(action_code);
 		}
 	}
 
@@ -295,15 +312,17 @@ public:
 			throw std::logic_error("action " + updater.get_action_name(action_code) + " is already stopped");
 		}
 
-		updater.stop(action_code);
-		is_stopped = true;
+		if (updater) {
+			updater->stop(action_code);
+			is_stopped = true;
+		}
 	}
 
 private:
 	/*!
 	 * \brief Updater whos start/stop are called
 	 */
-	call_tree_updater_t<TreeType> &updater;
+	call_tree_updater_t<TreeType> *updater;
 
 	/*!
 	 * \brief Action code of guarded action
@@ -315,6 +334,8 @@ private:
 	 */
 	bool is_stopped;
 };
+
+typedef action_guard_base_t<call_tree_t> action_guard;
 
 } // namespace react
 

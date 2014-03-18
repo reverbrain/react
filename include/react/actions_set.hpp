@@ -40,7 +40,7 @@ public:
 	 */
 	int define_new_action(const std::string& action_name) {
 		int action_code = actions_names.size();
-		actions_names.insert(make_pair(action_code, action_name));
+		actions_names.push_back(action_name);
 		return action_code;
 	}
 
@@ -57,7 +57,7 @@ private:
 	/*!
 	 * \brief Map between action's codes and action's names
 	 */
-	std::unordered_map<int, std::string> actions_names;
+	std::vector<std::string> actions_names;
 };
 
 } // namespace react

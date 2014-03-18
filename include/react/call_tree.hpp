@@ -95,6 +95,16 @@ public:
 	 */
 	virtual ~call_tree_base_t() {}
 
+	virtual void clear() {
+		nodes.clear();
+		root = new_node(-1);
+	}
+
+	virtual void set(const call_tree_base_t<NodeType> &rhs) {
+		nodes = rhs.nodes;
+		root = rhs.root;
+	}
+
 	/*!
 	 * \brief Converts call tree to json
 	 * \param stat_value Json node for writing
@@ -267,7 +277,7 @@ protected:
 	/*!
 	 * \brief Available actions for monitoring
 	 */
-	const actions_set_t& actions_set;
+	const actions_set_t &actions_set;
 };
 
 class unordered_call_tree_t : public call_tree_base_t<unordered_node_t> {
