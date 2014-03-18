@@ -16,6 +16,8 @@
 #ifndef ACTIONS_SET_HPP
 #define ACTIONS_SET_HPP
 
+#include <iostream>
+
 namespace react {
 
 /*!
@@ -26,12 +28,12 @@ public:
 	/*!
 	 * \brief Initializes empty actions set
 	 */
-	actions_set_t() {}
+	actions_set_t() { std::cerr << "constructing " << this << std::endl; }
 
 	/*!
 	 * \brief Frees memory consumed by actions set
 	 */
-	~actions_set_t() {}
+	~actions_set_t() { std::cerr << "destructing " << this << std::endl; }
 
 	/*!
 	 * \brief Defines new action

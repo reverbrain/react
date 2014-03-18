@@ -26,6 +26,9 @@
 #  endif
 #endif
 
+extern void *elliptics_actions_ptr;
+extern __thread void *thread_call_tree_updater_ptr;
+
 Q_EXTERN_C int init_call_tree(void **call_tree);
 Q_EXTERN_C int cleanup_call_tree(void *call_tree);
 Q_EXTERN_C int init_empty_updater();
@@ -89,5 +92,23 @@ extern const int ACTION_DNET_CMD_AUTH;
 extern const int ACTION_DNET_CMD_ITERATOR;
 extern const int ACTION_DNET_CMD_BULK_READ;
 extern const int ACTION_DNET_CMD_ROUTE_LIST;
+
+extern const int ACTION_EBLOB;
+extern const int ACTION_EBLOB_WRITE;
+extern const int ACTION_EBLOB_READ;
+extern const int ACTION_EBLOB_READ_DATA;
+extern const int ACTION_EBLOB_HASH;
+extern const int ACTION_EBLOB_REMOVE;
+extern const int ACTION_EBLOB_WRITE_PREPARE;
+extern const int ACTION_EBLOB_FILL_WRITE_CONTROL_FROM_RAM;
+extern const int ACTION_EBLOB_INDEX_BLOCK_SEARCH_NOLOCK;
+extern const int ACTION_EBLOB_FIND_ON_DISK;
+extern const int ACTION_EBLOB_DISK_INDEX_LOOKUP;
+extern const int ACTION_EBLOB_CACHE_LOOKUP;
+extern const int ACTION_EBLOB_COMMIT_DISK;
+extern const int ACTION_EBLOB_WRITE_PREPARE_DISK_LL;
+extern const int ACTION_EBLOB_WRITE_PREPARE_DISK;
+extern const int ACTION_EBLOB_WRITE_COMMIT_NOLOCK;
+extern const int ACTION_EBLOB_WRITEV_RETURN;
 
 #endif // ELLIPTICS_REACT_H

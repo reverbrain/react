@@ -22,9 +22,10 @@
 
 using namespace react;
 
-actions_set_t elliptics_actions;
+void *elliptics_actions_ptr = (void*) new actions_set_t();
+static actions_set_t *elliptics_actions = (actions_set_t*) elliptics_actions_ptr;
 
-#define DEFINE_ACTION(CODE, NAME) const int CODE = elliptics_actions.define_new_action(NAME)
+#define DEFINE_ACTION(CODE, NAME) const int CODE = elliptics_actions->define_new_action(NAME)
 
 #define DEFINE_DNET_ACTION(CODE, NAME) DEFINE_ACTION(ACTION_DNET_##CODE, NAME)
 
@@ -78,18 +79,38 @@ DEFINE_CACHE_ACTION(SYNC_ITERATE, "SYNC_ITERATE");
 DEFINE_CACHE_ACTION(DNET_OPLOCK, "DNET_OPLOCK");
 DEFINE_CACHE_ACTION(DESTRUCT, "DESTRUCT");
 
+#define DEFINE_EBLOB_ACTION(CODE, NAME) DEFINE_ACTION(ACTION_EBLOB_##CODE, NAME)
+
+DEFINE_ACTION(ACTION_EBLOB, "EBLOB");
+DEFINE_EBLOB_ACTION(WRITE, "WRITE");
+DEFINE_EBLOB_ACTION(READ, "READ");
+DEFINE_EBLOB_ACTION(READ_DATA, "READ_DATA");
+DEFINE_EBLOB_ACTION(HASH, "HASH");
+DEFINE_EBLOB_ACTION(REMOVE, "REMOVE");
+DEFINE_EBLOB_ACTION(WRITE_PREPARE, "WRITE_PREPARE");
+DEFINE_EBLOB_ACTION(FILL_WRITE_CONTROL_FROM_RAM, "FILL_WRITE_CONTROL_FROM_RAM");
+DEFINE_EBLOB_ACTION(INDEX_BLOCK_SEARCH_NOLOCK, "INDEX_BLOCK_SEARCH_NOLOCK");
+DEFINE_EBLOB_ACTION(FIND_ON_DISK, "FIND_ON_DISK");
+DEFINE_EBLOB_ACTION(DISK_INDEX_LOOKUP, "DISK_INDEX_LOOKUP");
+DEFINE_EBLOB_ACTION(CACHE_LOOKUP, "CACHE_LOOKUP");
+DEFINE_EBLOB_ACTION(COMMIT_DISK, "COMMIT_DISK");
+DEFINE_EBLOB_ACTION(WRITE_PREPARE_DISK_LL, "WRITE_PREPARE_DISK_LOW_LEVEL");
+DEFINE_EBLOB_ACTION(WRITE_PREPARE_DISK, "WRITE_PREPARE_DISK");
+DEFINE_EBLOB_ACTION(WRITE_COMMIT_NOLOCK, "WRITE_COMMIT_NOLOCK");
+DEFINE_EBLOB_ACTION(WRITEV_RETURN, "WRITEV_RETURN");
 
 typedef concurrent_call_tree_t<call_tree_t> concurrent_call_tree;
 typedef call_tree_updater_t<call_tree_t> call_tree_updater;
 
-__thread call_tree_updater *thread_call_tree_updater = NULL;
+__thread void *thread_call_tree_updater_ptr = NULL;
+static __thread call_tree_updater *thread_call_tree_updater = NULL;
 
 #include <iostream>
 #include <mutex>
 
 int init_call_tree(void **call_tree) {
 	try {
-		*call_tree = new concurrent_call_tree(elliptics_actions);
+		*call_tree = new concurrent_call_tree(*elliptics_actions);
 	} catch (std::exception& e) {
 		std::cerr << e.what() << std::endl;
 		return -ENOMEM;
@@ -120,7 +141,8 @@ int merge_call_tree(void *call_tree, void *elliptics_react_manager) {
 
 int init_empty_updater() {
 	try {
-		thread_call_tree_updater = new call_tree_updater();
+		thread_call_tree_updater_ptr = (void*) new call_tree_updater();
+		thread_call_tree_updater = (call_tree_updater*) thread_call_tree_updater_ptr;
 	} catch (std::exception& e) {
 		std::cerr << e.what() << std::endl;
 		return -ENOMEM;
@@ -130,7 +152,8 @@ int init_empty_updater() {
 
 int init_updater(void *call_tree) {
 	try {
-		thread_call_tree_updater = new call_tree_updater(*((concurrent_call_tree*) call_tree));
+		thread_call_tree_updater_ptr = (void*) new call_tree_updater(*((concurrent_call_tree*) call_tree));
+		thread_call_tree_updater = (call_tree_updater*) thread_call_tree_updater_ptr;
 	} catch (std::exception& e) {
 		std::cerr << e.what() << std::endl;
 		return -ENOMEM;
@@ -141,7 +164,8 @@ int init_updater(void *call_tree) {
 int cleanup_updater() {
 	try {
 		if (thread_call_tree_updater) {
-			delete thread_call_tree_updater;
+			delete (call_tree_updater*) thread_call_tree_updater_ptr;
+			thread_call_tree_updater_ptr = NULL;
 			thread_call_tree_updater = NULL;
 		}
 	} catch (std::exception& e) {
@@ -176,6 +200,7 @@ int call_tree_is_set() {
 
 int start_action(int action_code) {
 	if (!thread_call_tree_updater) {
+		std::cerr << "start_action " << action_code << std::endl;
 		return 0;
 	}
 
@@ -206,7 +231,7 @@ action_guard make_action_guard(int action_code) {
 	return action_guard(thread_call_tree_updater, action_code);
 }
 
-elliptics_react_manager_t::elliptics_react_manager_t(): total_call_tree(elliptics_actions), last_call_tree(elliptics_actions) {
+elliptics_react_manager_t::elliptics_react_manager_t(): total_call_tree(*elliptics_actions), last_call_tree(*elliptics_actions) {
 
 }
 
