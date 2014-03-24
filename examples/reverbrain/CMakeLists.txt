@@ -1,12 +1,12 @@
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
 
-add_library(elliptics_react STATIC elliptics_react.h elliptics_react.hpp elliptics_react.cpp)
+add_library(reverbrain_react STATIC reverbrain_react.h reverbrain_react.hpp reverbrain_react.cpp)
 
 if(UNIX OR MINGW)
-	set_target_properties(elliptics_react PROPERTIES COMPILE_FLAGS "-fPIC")
+	set_target_properties(reverbrain_react PROPERTIES COMPILE_FLAGS "-fPIC")
 endif()
 
-install(TARGETS elliptics_react
+install(TARGETS reverbrain_react
 	EXPORT EllipticsTargets
 	LIBRARY DESTINATION lib${LIB_SUFFIX}
 	ARCHIVE DESTINATION lib${LIB_SUFFIX}

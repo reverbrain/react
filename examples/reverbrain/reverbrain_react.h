@@ -13,8 +13,8 @@
 * GNU Lesser General Public License for more details.
 */
 
-#ifndef ELLIPTICS_REACT_H
-#define ELLIPTICS_REACT_H
+#ifndef REVERBRAIN_REACT_H
+#define REVERBRAIN_REACT_H
 
 #include "stddef.h"
 
@@ -26,7 +26,7 @@
 #  endif
 #endif
 
-extern void *elliptics_actions_ptr;
+extern void *reverbrain_actions_ptr;
 extern __thread void *thread_call_tree_updater_ptr;
 
 Q_EXTERN_C int init_call_tree(void **call_tree);
@@ -36,7 +36,7 @@ Q_EXTERN_C int init_updater(void *call_tree);
 Q_EXTERN_C int cleanup_updater();
 Q_EXTERN_C int set_current_call_tree(void *call_tree);
 Q_EXTERN_C int call_tree_is_set();
-Q_EXTERN_C int merge_call_tree(void *call_tree, void *elliptics_react_manager);
+Q_EXTERN_C int merge_call_tree(void *call_tree, void *reverbrain_react_manager);
 
 Q_EXTERN_C int start_action(int action_code);
 Q_EXTERN_C int stop_action(int action_code);
@@ -45,11 +45,11 @@ Q_EXTERN_C int stop_action(int action_code);
 
 // This define allows to specify actions list only in one place.
 // Actually, we need to define action code as extern int value to use it everywhere,
-// but also we need to set it's value inside action_set_t elliptics_actions and
+// but also we need to set it's value inside action_set_t reverbrain_actions and
 // it can only be done in .cpp file. That's why this define unfolds differently
-// in elliptics_react.cpp file where ELLIPTICS_REACT_CPP is defined.
-#ifdef ELLIPTICS_REACT_CPP
-	#define DEFINE_ACTION(CODE) DEFINE_ACTION_BASE(ACTION_ ## CODE); const int ACTION_ ## CODE = elliptics_actions->define_new_action(#CODE)
+// in reverbrain_react.cpp file where REVERBRAIN_REACT_CPP is defined.
+#ifdef REVERBRAIN_REACT_CPP
+	#define DEFINE_ACTION(CODE) DEFINE_ACTION_BASE(ACTION_ ## CODE); const int ACTION_ ## CODE = reverbrain_actions->define_new_action(#CODE)
 #else
 	#define DEFINE_ACTION(CODE) DEFINE_ACTION_BASE(ACTION_ ## CODE)
 #endif
@@ -125,4 +125,4 @@ DEFINE_ACTION(EBLOB_FILE_INFO);
 DEFINE_ACTION(EBLOB_DEL);
 DEFINE_ACTION(EBLOB_START_DEFRAG);
 
-#endif // ELLIPTICS_REACT_H
+#endif // REVERBRAIN_REACT_H

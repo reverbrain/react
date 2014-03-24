@@ -13,8 +13,8 @@
 * GNU Lesser General Public License for more details.
 */
 
-#ifndef ELLIPTICS_REACT_CPP
-#define ELLIPTICS_REACT_CPP
+#ifndef REVERBRAIN_REACT_CPP
+#define REVERBRAIN_REACT_CPP
 
 #include "react/react.hpp"
 
@@ -22,10 +22,10 @@
 
 using namespace react;
 
-void *elliptics_actions_ptr = (void*) new actions_set_t();
-static actions_set_t *elliptics_actions = (actions_set_t*) elliptics_actions_ptr;
+void *reverbrain_actions_ptr = (void*) new actions_set_t();
+static actions_set_t *reverbrain_actions = (actions_set_t*) reverbrain_actions_ptr;
 
-#include "elliptics_react.hpp"
+#include "reverbrain_react.hpp"
 
 typedef concurrent_call_tree_t<call_tree_t> concurrent_call_tree;
 typedef call_tree_updater_t<call_tree_t> call_tree_updater;
@@ -38,7 +38,7 @@ static __thread call_tree_updater *thread_call_tree_updater = NULL;
 
 int init_call_tree(void **call_tree) {
 	try {
-		*call_tree = new concurrent_call_tree(*elliptics_actions);
+		*call_tree = new concurrent_call_tree(*reverbrain_actions);
 	} catch (std::exception& e) {
 		std::cerr << e.what() << std::endl;
 		return -ENOMEM;
@@ -56,9 +56,9 @@ int cleanup_call_tree(void *call_tree) {
 	return 0;
 }
 
-int merge_call_tree(void *call_tree, void *elliptics_react_manager) {
+int merge_call_tree(void *call_tree, void *reverbrain_react_manager) {
 	try {
-		((elliptics_react_manager_t*) elliptics_react_manager)->add_tree(*((concurrent_call_tree*) call_tree));
+		((reverbrain_react_manager_t*) reverbrain_react_manager)->add_tree(*((concurrent_call_tree*) call_tree));
 	} catch (std::exception& e) {
 		std::cerr << e.what() << std::endl;
 		return -EFAULT;
@@ -158,11 +158,11 @@ action_guard make_action_guard(int action_code) {
 	return action_guard(thread_call_tree_updater, action_code);
 }
 
-elliptics_react_manager_t::elliptics_react_manager_t(): total_call_tree(*elliptics_actions), last_call_tree(*elliptics_actions) {
+reverbrain_react_manager_t::reverbrain_react_manager_t(): total_call_tree(*reverbrain_actions), last_call_tree(*reverbrain_actions) {
 
 }
 
-void elliptics_react_manager_t::add_tree(concurrent_call_tree &call_tree) {
+void reverbrain_react_manager_t::add_tree(concurrent_call_tree &call_tree) {
 	mutex.lock();
 	auto call_tree_copy = call_tree.copy_time_stats_tree();
 	call_tree_copy.merge_into(total_call_tree);
@@ -170,12 +170,12 @@ void elliptics_react_manager_t::add_tree(concurrent_call_tree &call_tree) {
 	mutex.unlock();
 }
 
-const unordered_call_tree_t &elliptics_react_manager_t::get_total_call_tree() const {
+const unordered_call_tree_t &reverbrain_react_manager_t::get_total_call_tree() const {
 	return total_call_tree;
 }
 
-const call_tree_t &elliptics_react_manager_t::get_last_call_tree() const {
+const call_tree_t &reverbrain_react_manager_t::get_last_call_tree() const {
 	return last_call_tree;
 }
 
-#endif // ELLIPTICS_REACT_CPP
+#endif // REVERBRAIN_REACT_CPP
