@@ -309,7 +309,7 @@ public:
 	 */
 	void stop() {
 		if (is_stopped) {
-			throw std::logic_error("action " + updater.get_action_name(action_code) + " is already stopped");
+			throw std::logic_error("action " + updater->get_action_name(action_code) + " is already stopped");
 		}
 
 		if (updater) {

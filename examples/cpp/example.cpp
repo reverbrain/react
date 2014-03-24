@@ -29,7 +29,6 @@ const int ACTION_LOAD_FROM_CACHE = actions_set.define_new_action("LOAD FROM CACH
 
 typedef concurrent_call_tree_t<call_tree_t> concurrent_time_stats_tree_t;
 typedef call_tree_updater_t<call_tree_t> time_stats_updater_t;
-typedef action_guard<call_tree_t> time_stats_action_guard;
 
 time_stats_updater_t updater; // Updater for gathering of statistics.
 
@@ -40,27 +39,27 @@ bool find_record() {
 }
 
 std::string read_from_disk() {
-	time_stats_action_guard read_from_disk_guard(updater, ACTION_READ_FROM_DISK);
+	action_guard read_from_disk_guard(&updater, ACTION_READ_FROM_DISK);
 
 	std::this_thread::sleep_for( std::chrono::microseconds(1000) );
 	return "DISK";
 }
 
 void put_into_cache(std::string data) {
-	time_stats_action_guard put_into_cache_guard(updater, ACTION_PUT_INTO_CACHE);
+	action_guard put_into_cache_guard(&updater, ACTION_PUT_INTO_CACHE);
 
 	std::this_thread::sleep_for( std::chrono::microseconds(50) );
 }
 
 std::string load_from_cache() {
-	time_stats_action_guard load_from_cache_guard(updater, ACTION_LOAD_FROM_CACHE);
+	action_guard load_from_cache_guard(&updater, ACTION_LOAD_FROM_CACHE);
 
 	std::this_thread::sleep_for( std::chrono::microseconds(25) );
 	return "CACHE";
 }
 
 std::string cache_read() {
-	time_stats_action_guard read_guard(updater, ACTION_READ); // Creates new guard and starts action which will be stopped on guard's destructor
+	action_guard read_guard(&updater, ACTION_READ); // Creates new guard and starts action which will be stopped on guard's destructor
 
 	std::string data;
 
@@ -69,7 +68,7 @@ std::string cache_read() {
 	updater.stop(ACTION_FIND);
 
 	if (!found) {
-		time_stats_action_guard load_from_disk_guard(updater, ACTION_LOAD_FROM_DISK);
+		action_guard load_from_disk_guard(&updater, ACTION_LOAD_FROM_DISK);
 
 		data = read_from_disk();
 		put_into_cache(data);
