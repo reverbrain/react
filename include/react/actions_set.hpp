@@ -28,12 +28,12 @@ public:
 	/*!
 	 * \brief Initializes empty actions set
 	 */
-	actions_set_t() { std::cerr << "constructing " << this << std::endl; }
+	actions_set_t() {}
 
 	/*!
 	 * \brief Frees memory consumed by actions set
 	 */
-	~actions_set_t() { std::cerr << "destructing " << this << std::endl; }
+	~actions_set_t() {}
 
 	/*!
 	 * \brief Defines new action
