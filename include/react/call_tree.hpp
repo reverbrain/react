@@ -281,8 +281,10 @@ protected:
 };
 
 class unordered_call_tree_t : public call_tree_base_t<unordered_node_t> {
+	typedef call_tree_base_t<unordered_node_t> Base;
+
 public:
-	unordered_call_tree_t(const actions_set_t &actions_set): call_tree_base_t(actions_set) {}
+	unordered_call_tree_t(const actions_set_t &actions_set): Base(actions_set) {}
 
 	/*!
 	 * \brief frees memory consumed by call tree
@@ -345,8 +347,8 @@ public:
 		return std::move(diff_tree);
 	}
 
-	using call_tree_base_t<unordered_node_t>::to_json;
-	using call_tree_base_t<unordered_node_t>::merge_into;
+	using Base::to_json;
+	using Base::merge_into;
 
 private:
 };
@@ -394,8 +396,10 @@ void call_tree_base_t<NodeType>::substract_from(p_node_t lhs_node, p_node_t rhs_
 }
 
 class call_tree_t : public call_tree_base_t<ordered_node_t> {
+	typedef call_tree_base_t<ordered_node_t> Base;
+
 public:
-	call_tree_t(const actions_set_t &actions_set): call_tree_base_t(actions_set) {}
+	call_tree_t(const actions_set_t &actions_set): Base(actions_set) {}
 
 	/*!
 	 * \brief frees memory consumed by call tree
@@ -424,8 +428,8 @@ public:
 		return add_new_link(node, action_code);
 	}
 
-	using call_tree_base_t<ordered_node_t>::to_json;
-	using call_tree_base_t<ordered_node_t>::merge_into;
+	using Base::to_json;
+	using Base::merge_into;
 
 private:
 };
