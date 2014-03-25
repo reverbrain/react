@@ -225,8 +225,8 @@ protected:
 		if (!nodes[current_node].links.empty()) {
 			rapidjson::Value subtree_actions(rapidjson::kArrayType);
 
-			for (const auto &it : nodes[current_node].links) {
-				p_node_t next_node = it.second;
+			for (auto it = nodes[current_node].links.begin(); it != nodes[current_node].links.end(); ++it) {
+				p_node_t next_node = it->second;
 				rapidjson::Value subtree_value(rapidjson::kObjectType);
 				to_json(next_node, subtree_value, allocator);
 				subtree_actions.PushBack(subtree_value, allocator);
@@ -366,9 +366,9 @@ void call_tree_base_t<NodeType>::merge_into(p_node_t lhs_node, p_node_t rhs_node
 	rhs_tree.set_node_time(rhs_node, rhs_tree.get_node_time(rhs_node) + get_node_time(lhs_node));
 	rhs_tree.set_node_calls_number(rhs_node, rhs_tree.get_node_calls_number(rhs_node) + get_node_calls_number(lhs_node));
 
-	for (const auto &it : nodes[lhs_node].links) {
-		int action_code = it.first;
-		p_node_t lhs_next_node = it.second;
+	for (auto it = nodes[lhs_node].links.begin(); it != nodes[lhs_node].links.end(); ++it) {
+		int action_code = it->first;
+		p_node_t lhs_next_node = it->second;
 		if (!rhs_tree.node_has_link(rhs_node, action_code)) {
 			rhs_tree.add_new_link(rhs_node, action_code);
 		}
@@ -382,9 +382,9 @@ void call_tree_base_t<NodeType>::substract_from(p_node_t lhs_node, p_node_t rhs_
 	rhs_tree.set_node_time(rhs_node, rhs_tree.get_node_time(rhs_node) - get_node_time(lhs_node));
 	rhs_tree.set_node_calls_number(rhs_node, rhs_tree.get_node_calls_number(rhs_node) - get_node_calls_number(lhs_node));
 
-	for (const auto &it : nodes[lhs_node].links) {
-		int action_code = it.first;
-		p_node_t lhs_next_node = it.second;
+	for (auto it = nodes[lhs_node].links.begin(); it != nodes[lhs_node].links.end(); ++it) {
+		int action_code = it->first;
+		p_node_t lhs_next_node = it->second;
 		if (!rhs_tree.node_has_link(rhs_node, action_code)) {
 			rhs_tree.add_new_link(rhs_node, action_code);
 		}
