@@ -57,6 +57,10 @@ int cleanup_call_tree(void *call_tree) {
 }
 
 int merge_call_tree(void *call_tree, void *reverbrain_react_manager) {
+	if (!reverbrain_react_manager) {
+		return 0;
+	}
+
 	try {
 		((reverbrain_react_manager_t*) reverbrain_react_manager)->add_tree(*((concurrent_call_tree*) call_tree));
 	} catch (std::exception& e) {
