@@ -345,8 +345,8 @@ public:
 		return std::move(diff_tree);
 	}
 
-	using call_tree_base_t::to_json;
-	using call_tree_base_t::merge_into;
+	using call_tree_base_t<unordered_node_t>::to_json;
+	using call_tree_base_t<unordered_node_t>::merge_into;
 
 private:
 };
@@ -424,8 +424,8 @@ public:
 		return add_new_link(node, action_code);
 	}
 
-	using call_tree_base_t::to_json;
-	using call_tree_base_t::merge_into;
+	using call_tree_base_t<ordered_node_t>::to_json;
+	using call_tree_base_t<ordered_node_t>::merge_into;
 
 private:
 };
