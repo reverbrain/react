@@ -48,7 +48,7 @@ int init_call_tree(void **call_tree) {
 
 int cleanup_call_tree(void *call_tree) {
 	try {
-		free((concurrent_call_tree*) call_tree);
+		delete reinterpret_cast<concurrent_call_tree*>(call_tree);
 	} catch (std::exception& e) {
 		std::cerr << e.what() << std::endl;
 		return -EFAULT;
