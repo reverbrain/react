@@ -41,8 +41,12 @@ install(TARGETS react
 	BUNDLE DESTINATION library
 )
 
-install(DIRECTORY include/
-	DESTINATION include
+install(DIRECTORY include/react/
+	DESTINATION include/react
+)
+
+install(DIRECTORY foreign/
+	DESTINATION include/react
 )
 
 set(INSTALL_INCLUDE_DIR "${CMAKE_INSTALL_PREFIX}/include")
