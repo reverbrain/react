@@ -16,8 +16,8 @@
 #ifndef REACT_HPP
 #define REACT_HPP
 
-#include <react/call_tree.hpp>
-#include <react/updater.hpp>
+#include "react/call_tree.hpp"
+#include "react/updater.hpp"
 
 #include "react.h"
 
