@@ -62,7 +62,7 @@ public:
 	 * \param max_depth Maximum monitored depth of call stack
 	 */
 	call_tree_updater_t(concurrent_time_stats_tree_t &time_stats_tree,
-						 const size_t max_depth = DEFAULT_DEPTH): max_depth(max_depth) {
+						 const size_t max_depth = DEFAULT_DEPTH): call_tree_updater_t(max_depth) {
 		set_time_stats_tree(time_stats_tree);
 		measurements.emplace(std::chrono::system_clock::now(), +time_stats_tree_t::NO_NODE);
 	}
