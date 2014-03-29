@@ -1,0 +1,31 @@
+Source: react
+Priority: optional
+Maintainer: Andrey Kashin <kashin.andrej@gmail.com>
+Build-Depends: 
+	cdbs, 
+	cmake (>= 2.6), 
+	debhelper (>= 7.0.50~)
+Standards-Version: 3.8.0
+Vcs-Git: git://github.com/reverbrain/react.git
+Vcs-Browser: https://github.com/reverbrain/react
+
+Package: react
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: Realtime call tree monitoring for C++ 
+ Library for embedding realtime monitoring into C++ applications
+
+Package: react-dev
+Architecture: any
+Depends: react (= ${Source-Version})
+Description: Realtime call tree monitoring for C++ 
+ Library for embedding realtime monitoring into C++ applications
+
+Package: react-dbg
+Architecture: any
+Section: debug
+Priority: extra
+Depends: react (= ${binary:Version}), ${misc:Depends}
+Description: Realtime call tree monitoring for C++ 
+ Library for embedding realtime monitoring into C++ applications
+

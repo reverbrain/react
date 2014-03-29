@@ -17,6 +17,7 @@
 #define ACTIONS_SET_HPP
 
 #include <iostream>
+#include <vector>
 
 namespace react {
 

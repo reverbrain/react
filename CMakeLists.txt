@@ -2,8 +2,49 @@ cmake_minimum_required (VERSION 2.6 FATAL_ERROR)
 
 project(react)
 
+FILE (READ "${CMAKE_CURRENT_SOURCE_DIR}/debian/changelog" DEBCHANGELOG)
+
+string(REGEX MATCH "([0-9]+\\.[0-9]+\\.[0-9]+)" DEBFULLVERSION "${DEBCHANGELOG}")
+string(REPLACE "." ";" VERSION_LIST ${DEBFULLVERSION})
+list(GET VERSION_LIST 0 REACT_VERSION_0)
+list(GET VERSION_LIST 1 REACT_VERSION_1)
+list(GET VERSION_LIST 2 REACT_VERSION_2)
+
+add_definitions(-DCONFIG_REACT_VERSION_0=${REACT_VERSION_0})
+add_definitions(-DCONFIG_REACT_VERSION_1=${REACT_VERSION_1})
+add_definitions(-DCONFIG_REACT_VERSION_2=${REACT_VERSION_2})
+
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x -std=gnu++0x")
+
 include_directories("foreign/")
 include_directories("include/")
 
 add_subdirectory(bindings)
 add_subdirectory(examples)
+
+add_library(react SHARED
+	src/react
+)
+
+set_target_properties(react PROPERTIES
+	COMPILE_FLAGS "-std=c++0x -W -Wall -Werror -pedantic"
+)
+
+if(UNIX OR MINGW)
+	set_target_properties(react PROPERTIES COMPILE_FLAGS "-fPIC")
+endif()
+
+install(TARGETS react
+	EXPORT ReactTargets
+	LIBRARY DESTINATION lib${LIB_SUFFIX}
+	ARCHIVE DESTINATION lib${LIB_SUFFIX}
+	BUNDLE DESTINATION library
+)
+
+install(DIRECTORY include/
+	DESTINATION include
+)
+
+set(INSTALL_INCLUDE_DIR "${CMAKE_INSTALL_PREFIX}/include")
+set(INSTALL_LIBRARY_DIR "${CMAKE_INSTALL_PREFIX}/lib${LIB_SUFFIX}")
+

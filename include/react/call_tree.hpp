@@ -23,6 +23,9 @@
 
 #include "actions_set.hpp"
 
+#include <unordered_map>
+#include <mutex>
+
 namespace react {
 
 template<typename Container>

@@ -2,4 +2,7 @@ cmake_minimum_required(VERSION 2.6)
 
 set(CMAKE_CXX_FLAGS "--std=c++0x -Wall")
 
-add_executable(example example.cpp)
+add_executable(low_level low_level.cpp)
+
+add_executable(high_level high_level.cpp)
+target_link_libraries(high_level react)

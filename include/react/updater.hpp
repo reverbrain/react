@@ -16,6 +16,9 @@
 #ifndef UPDATER_HPP
 #define UPDATER_HPP
 
+#include <stack>
+#include <stdexcept>
+
 namespace react {
 
 /*!
@@ -68,18 +71,7 @@ public:
 	 * \brief Checks if all actions were correctly finished.
 	 */
 	virtual ~call_tree_updater_t() {
-		if (depth != 0) {
-			std::cerr << "~time_stats_updater(): extra measurements:" << std::endl;
-			while (!measurements.empty()) {
-				std::cerr << get_current_node_action_name() << std::endl;
-				pop_measurement();
-			}
-		}
-		std::lock_guard<concurrent_time_stats_tree_t> guard(*time_stats_tree);
-
-		while (!measurements.empty()) {
-			pop_measurement();
-		}
+		check_for_extra_measurements();
 	}
 
 	/*!
@@ -87,8 +79,19 @@ public:
 	 * \param time_stats_tree Tree used to monitor updates
 	 */
 	void set_time_stats_tree(concurrent_time_stats_tree_t &time_stats_tree) {
+		check_for_extra_measurements();
 		current_node = time_stats_tree.get_time_stats_tree().root;
 		this->time_stats_tree = &time_stats_tree;
+		depth = 0;
+	}
+
+	/*!
+	 * \brief Resets current call tree
+	 */
+	void reset_time_stats_tree() {
+		check_for_extra_measurements();
+		current_node = time_stats_tree_t::NO_NODE;
+		this->time_stats_tree = NULL;
 		depth = 0;
 	}
 
@@ -196,6 +199,28 @@ private:
 	}
 
 	/*!
+	 * \internal
+	 *
+	 * \brief Assures that updater is empty
+	 */
+	void check_for_extra_measurements() {
+		if (depth != 0) {
+			std::string error_message;
+			if (!time_stats_tree) {
+				error_message = "~time_stats_updater(): extra measurements, tree is NULL\n";
+			} else {
+				error_message = "~time_stats_updater(): extra measurements:\n";
+				while (!measurements.empty()) {
+					error_message += get_current_node_action_name() + '\n';
+					pop_measurement();
+				}
+			}
+			std::cerr << error_message << std::endl;
+			throw std::logic_error(error_message);
+		}
+	}
+
+	/*!
 	 * \brief Represents single call measurement
 	 */
 	struct measurement {
@@ -290,11 +315,6 @@ public:
 		}
 	}
 
-	action_guard_base_t(action_guard_base_t<TreeType> &&rhs): updater(rhs.updater), action_code(rhs.action_code), is_stopped(rhs.is_stopped) {
-		rhs.updater = NULL;
-		rhs.is_stopped = true;
-	}
-
 	/*!
 	 * \brief Stops action if it is not already stopped
 	 */
@@ -335,7 +355,7 @@ private:
 	bool is_stopped;
 };
 
-typedef action_guard_base_t<call_tree_t> action_guard;
+typedef action_guard_base_t<call_tree_t> action_guard_t;
 
 } // namespace react
 
