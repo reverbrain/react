@@ -13,6 +13,10 @@
 * GNU Lesser General Public License for more details.
 */
 
+#ifndef _GLIBCXX_USE_NANOSLEEP
+#define _GLIBCXX_USE_NANOSLEEP
+#endif
+
 #include <thread>
 
 #include <react/react.hpp>
