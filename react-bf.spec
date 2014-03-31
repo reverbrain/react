@@ -72,12 +72,12 @@ rm -rf %{buildroot}
 %files
 %defattr(-,root,root,-)
 %{_bindir}/*
-%{_libdir}/libreverbrain_react.so.*
+%{_libdir}/libreact.so.*
 
 %files devel
 %defattr(-,root,root,-)
 %{_includedir}/*
-%{_libdir}/libreverbrain_react.so
+%{_libdir}/libreact.so
 
 %changelog
 * Thu Mar 27 2014 Andrey Kashin <kashin.andrej@gmail.com> - 1.0.1
