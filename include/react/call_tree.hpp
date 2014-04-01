@@ -63,7 +63,7 @@ struct unordered_node_t: public node_t< std::unordered_map<int, size_t> > {
 	 * \brief Initializes node with \a action_code and zero calls number
 	 * \param action_code Action code of the node
 	 */
-	unordered_node_t(int action_code): node_t(action_code), calls_number(0) {}
+	unordered_node_t(int action_code): node_t<std::unordered_map<int, size_t>>(action_code), calls_number(0) {}
 
 	/*!
 	 * \brief number of calls in this node
@@ -76,7 +76,7 @@ struct ordered_node_t: public node_t< std::vector<std::pair<int, size_t> > > {
 	 * \brief Initializes node with \a action_code
 	 * \param action_code Action code of the node
 	 */
-	ordered_node_t(int action_code): node_t(action_code) {}
+	ordered_node_t(int action_code): node_t<std::vector<std::pair<int, size_t>>>(action_code) {}
 };
 
 class unordered_call_tree_t;
@@ -295,8 +295,8 @@ public:
 		return link->second;
 	}
 
-	using call_tree_base_t::to_json;
-	using call_tree_base_t::merge_into;
+	using call_tree_base_t<unordered_node_t>::to_json;
+	using call_tree_base_t<unordered_node_t>::merge_into;
 
 private:
 	/*!
@@ -394,8 +394,8 @@ public:
 		return add_new_link(node, action_code);
 	}
 
-	using call_tree_base_t::to_json;
-	using call_tree_base_t::merge_into;
+	using call_tree_base_t<ordered_node_t>::to_json;
+	using call_tree_base_t<ordered_node_t>::merge_into;
 
 private:
 	/*!

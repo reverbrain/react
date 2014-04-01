@@ -33,12 +33,12 @@ public:
 	/*!
 	 * \brief Call tree node type
 	 */
-	typedef typename call_tree_t::node_t node_t;
+	typedef call_tree_t::node_t node_t;
 
 	/*!
 	 * \brief Pointer to call tree node type
 	 */
-	typedef typename call_tree_t::p_node_t p_node_t;
+	typedef call_tree_t::p_node_t p_node_t;
 
 	/*!
 	 * \brief Time point type
