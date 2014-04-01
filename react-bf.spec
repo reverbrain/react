@@ -66,7 +66,6 @@ rm -rf %{buildroot}
 
 %files
 %defattr(-,root,root,-)
-%{_bindir}/*
 %{_libdir}/libreact.so.*
 
 %files devel
