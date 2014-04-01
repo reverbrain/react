@@ -24,7 +24,7 @@ add_subdirectory(bindings)
 add_subdirectory(examples)
 
 add_library(react SHARED
-	src/react
+	src/react.cpp
 )
 
 set_target_properties(react PROPERTIES

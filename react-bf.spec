@@ -4,11 +4,6 @@
 %{!?python_sitelib: %global python_sitelib %(%{__python} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib())")}
 %{!?python_sitearch: %global python_sitearch %(%{__python} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib(1))")}
 
-# hacks
-%define cmake /usr/bin/cmake
-%define _libdir /usr/lib
-%define _includedir /usr/include
-
 Summary:	Distributed hash table storage
 Name:		react
 Version:	1.0.1
@@ -50,9 +45,9 @@ export DESTDIR="%{buildroot}"
 export PYTHON=/usr/bin/python26
 export CC=gcc44
 export CXX=g++44
-CXXFLAGS="-pthread" %{cmake} -DWITH_COCAINE=NO -DHAVE_MODULE_BACKEND_SUPPORT=no .
+CXXFLAGS="-pthread" %{cmake} .
 %else
-%{cmake} -DWITH_COCAINE=NO -DHAVE_MODULE_BACKEND_SUPPORT=no .
+%{cmake} .
 %endif
 
 make %{?_smp_mflags}
