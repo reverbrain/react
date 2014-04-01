@@ -20,11 +20,16 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x -std=gnu++0x")
 include_directories("foreign/")
 include_directories("include/")
 
-add_subdirectory(bindings)
 add_subdirectory(examples)
 
-add_library(react SHARED
+file(GLOB_RECURSE HEADERS include/react/*.hpp)
+set(SOURCES
 	src/react.cpp
+)
+
+add_library(react SHARED
+	${HEADERS}
+	${SOURCES}
 )
 
 set_target_properties(react PROPERTIES
