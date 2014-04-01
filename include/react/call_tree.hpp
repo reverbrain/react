@@ -24,6 +24,7 @@
 #include "actions_set.hpp"
 
 #include <unordered_map>
+#include <vector>
 #include <mutex>
 
 namespace react {
@@ -36,10 +37,10 @@ struct node_t {
 	typedef size_t pointer;
 
 	/*!
-	 * \brief Initializes node with \a action_code and zero consumed time and calls number
+	 * \brief Initializes node with \a action_code and zero consumed time
 	 * \param action_code Action code of the node
 	 */
-	node_t(int action_code): action_code(action_code), time(0), calls_number(0) {}
+	node_t(int action_code): action_code(action_code), time(0) {}
 
 	/*!
 	 * \brief action which this node represents
@@ -52,18 +53,31 @@ struct node_t {
 	long long int time;
 
 	/*!
-	 * \brief number of calls in this node
-	 */
-	long long int calls_number;
-
-	/*!
 	 * \brief Child nodes, actions that happen inside this action
 	 */
 	Container links;
 };
 
-typedef node_t< std::unordered_map<int, size_t> > unordered_node_t;
-typedef node_t< std::vector< std::pair<int, size_t> > > ordered_node_t;
+struct unordered_node_t: public node_t< std::unordered_map<int, size_t> > {
+	/*!
+	 * \brief Initializes node with \a action_code and zero calls number
+	 * \param action_code Action code of the node
+	 */
+	unordered_node_t(int action_code): node_t(action_code), calls_number(0) {}
+
+	/*!
+	 * \brief number of calls in this node
+	 */
+	long long int calls_number;
+};
+
+struct ordered_node_t: public node_t< std::vector<std::pair<int, size_t> > > {
+	/*!
+	 * \brief Initializes node with \a action_code
+	 * \param action_code Action code of the node
+	 */
+	ordered_node_t(int action_code): node_t(action_code) {}
+};
 
 class unordered_call_tree_t;
 
@@ -97,33 +111,6 @@ public:
 	 * \brief frees memory consumed by call tree
 	 */
 	virtual ~call_tree_base_t() {}
-
-	virtual void clear() {
-		nodes.clear();
-		root = new_node(-1);
-	}
-
-	virtual void set(const call_tree_base_t<NodeType> &rhs) {
-		nodes = rhs.nodes;
-		root = rhs.root;
-	}
-
-	/*!
-	 * \brief Converts call tree to json
-	 * \param stat_value Json node for writing
-	 * \param allocator Json allocator
-	 * \return Modified json node
-	 */
-	rapidjson::Value& to_json(rapidjson::Value &stat_value,
-							  rapidjson::Document::AllocatorType &allocator) const {
-		return to_json(root, stat_value, allocator);
-	}
-
-	/*!
-	 * \brief Merges this tree into \a another_tree
-	 * \param another_tree Tree where current tree will be merged in
-	 */
-	void merge_into(unordered_call_tree_t& another_tree) const;
 
 	/*!
 	 * \brief Substracts time stats of this tree from \a another tree
@@ -168,32 +155,6 @@ public:
 	}
 
 	/*!
-	 * \brief Sets total calls number of action represented by \a node
-	 * \param node Action's node
-	 * \param time New calls number
-	 */
-	void set_node_calls_number(p_node_t node, long long calls_number) {
-		nodes[node].calls_number = calls_number;
-	}
-
-	/*!
-	 * \brief Increments total calls number of action represented by \a node
-	 * \param node Action's node
-	 */
-	void inc_node_calls_number(p_node_t node) {
-		++nodes[node].calls_number;
-	}
-
-	/*!
-	 * \brief Returns total calls number of action represented by \a node
-	 * \param node Action's node
-	 * \return Time calls number of action
-	 */
-	long long int get_node_calls_number(p_node_t node) const {
-		return nodes[node].calls_number;
-	}
-
-	/*!
 	 * \brief Returns actions set monitored by this tree
 	 * \return Actions set monitored by this tree
 	 */
@@ -206,60 +167,28 @@ public:
 	 */
 	p_node_t root;
 
-protected:
 	/*!
-	 * \internal
-	 *
-	 * \brief Recursively converts subtree to json
-	 * \param current_node Node which subtree will be converted
+	 * \brief Converts call tree to json
 	 * \param stat_value Json node for writing
 	 * \param allocator Json allocator
 	 * \return Modified json node
 	 */
-	rapidjson::Value& to_json(p_node_t current_node, rapidjson::Value &stat_value,
+	rapidjson::Value& to_json(rapidjson::Value &stat_value,
 							  rapidjson::Document::AllocatorType &allocator) const {
-
-		if (current_node != root) {
-			stat_value.AddMember("name", actions_set.get_action_name(get_node_action_code(current_node)).c_str(), allocator);
-			stat_value.AddMember("time", (int64_t) get_node_time(current_node), allocator);
-			stat_value.AddMember("calls", (int64_t) get_node_calls_number(current_node), allocator);
-		}
-
-		if (!nodes[current_node].links.empty()) {
-			rapidjson::Value subtree_actions(rapidjson::kArrayType);
-
-			for (auto it = nodes[current_node].links.begin(); it != nodes[current_node].links.end(); ++it) {
-				p_node_t next_node = it->second;
-				rapidjson::Value subtree_value(rapidjson::kObjectType);
-				to_json(next_node, subtree_value, allocator);
-				subtree_actions.PushBack(subtree_value, allocator);
-			}
-
-			stat_value.AddMember("actions", subtree_actions, allocator);
-		}
-
-		return stat_value;
+		return to_json(root, stat_value, allocator);
 	}
 
 	/*!
-	 * \internal
-	 *
-	 * \brief Recursively merges \a lhs_node into \a rhs_node
-	 * \param lhs_node Node which will be merged
-	 * \param rhs_node
-	 * \param rhs_tree
+	 * \brief Merges this tree into \a another_tree
+	 * \param another_tree Tree where current tree will be merged in
 	 */
-	void merge_into(p_node_t lhs_node, p_node_t rhs_node, unordered_call_tree_t& rhs_tree) const;
+	void merge_into(unordered_call_tree_t& another_tree) const;
 
-	/*!
-	 * \internal
-	 *
-	 * \brief Recursively substracts \a lhs_node from \a rhs_node
-	 * \param lhs_node Node which will be substracted
-	 * \param rhs_node
-	 * \param rhs_tree
-	 */
-	void substract_from(p_node_t lhs_node, p_node_t rhs_node, unordered_call_tree_t& rhs_tree) const;
+protected:
+	virtual rapidjson::Value& to_json(p_node_t current_node, rapidjson::Value &stat_value,
+							  rapidjson::Document::AllocatorType &allocator) const = 0;
+
+	virtual void merge_into(p_node_t lhs_node, p_node_t rhs_node, unordered_call_tree_t& rhs_tree) const = 0;
 
 	/*!
 	 * \internal
@@ -293,6 +222,32 @@ public:
 	 * \brief frees memory consumed by call tree
 	 */
 	~unordered_call_tree_t() {}
+
+	/*!
+	 * \brief Sets total calls number of action represented by \a node
+	 * \param node Action's node
+	 * \param time New calls number
+	 */
+	void set_node_calls_number(p_node_t node, long long calls_number) {
+		nodes[node].calls_number = calls_number;
+	}
+
+	/*!
+	 * \brief Increments total calls number of action represented by \a node
+	 * \param node Action's node
+	 */
+	void inc_node_calls_number(p_node_t node) {
+		++nodes[node].calls_number;
+	}
+
+	/*!
+	 * \brief Returns total calls number of action represented by \a node
+	 * \param node Action's node
+	 * \return Time calls number of action
+	 */
+	long long int get_node_calls_number(p_node_t node) const {
+		return nodes[node].calls_number;
+	}
 
 	/*!
 	 * \brief Checks whether node has child with \a action_code
@@ -340,62 +295,70 @@ public:
 		return link->second;
 	}
 
-	/*!
-	 * \brief Calculates time differences between this tree and \a another tree
-	 * \param another_tree Tree which will be substracted from this tree
-	 */
-	unordered_call_tree_t diff_from(unordered_call_tree_t& another_tree) const {
-		unordered_call_tree_t diff_tree = *this;
-		another_tree.substract_from(diff_tree);
-		return std::move(diff_tree);
-	}
-
-	using Base::to_json;
-	using Base::merge_into;
+	using call_tree_base_t::to_json;
+	using call_tree_base_t::merge_into;
 
 private:
+	/*!
+	 * \internal
+	 *
+	 * \brief Recursively converts subtree to json
+	 * \param current_node Node which subtree will be converted
+	 * \param stat_value Json node for writing
+	 * \param allocator Json allocator
+	 * \return Modified json node
+	 */
+	rapidjson::Value& to_json(p_node_t current_node, rapidjson::Value &stat_value,
+							  rapidjson::Document::AllocatorType &allocator) const {
+		if (current_node != root) {
+			stat_value.AddMember("name", actions_set.get_action_name(get_node_action_code(current_node)).c_str(), allocator);
+			stat_value.AddMember("time", (int64_t) get_node_time(current_node), allocator);
+			stat_value.AddMember("calls", (int64_t) get_node_calls_number(current_node), allocator);
+		}
+
+		if (!nodes[current_node].links.empty()) {
+			rapidjson::Value subtree_actions(rapidjson::kArrayType);
+
+			for (auto it = nodes[current_node].links.begin(); it != nodes[current_node].links.end(); ++it) {
+				p_node_t next_node = it->second;
+				rapidjson::Value subtree_value(rapidjson::kObjectType);
+				to_json(next_node, subtree_value, allocator);
+				subtree_actions.PushBack(subtree_value, allocator);
+			}
+
+			stat_value.AddMember("actions", subtree_actions, allocator);
+		}
+
+		return stat_value;
+	}
+
+	/*!
+	 * \internal
+	 *
+	 * \brief Recursively merges \a lhs_node into \a rhs_node
+	 * \param lhs_node Node which will be merged
+	 * \param rhs_node
+	 * \param rhs_tree
+	 */
+	void merge_into(p_node_t lhs_node, p_node_t rhs_node, unordered_call_tree_t& rhs_tree) const {
+		rhs_tree.set_node_time(rhs_node, rhs_tree.get_node_time(rhs_node) + get_node_time(lhs_node));
+		rhs_tree.set_node_calls_number(rhs_node, rhs_tree.get_node_calls_number(rhs_node) + get_node_calls_number(lhs_node));
+
+		for (auto it = nodes[lhs_node].links.begin(); it != nodes[lhs_node].links.end(); ++it) {
+			int action_code = it->first;
+			p_node_t lhs_next_node = it->second;
+			if (!rhs_tree.node_has_link(rhs_node, action_code)) {
+				rhs_tree.add_new_link(rhs_node, action_code);
+			}
+			p_node_t rhs_next_node = rhs_tree.get_node_link(rhs_node, action_code);
+			merge_into(lhs_next_node, rhs_next_node, rhs_tree);
+		}
+	}
 };
 
 template<typename NodeType>
 void call_tree_base_t<NodeType>::merge_into(unordered_call_tree_t& another_tree) const {
 	merge_into(root, another_tree.root, another_tree);
-}
-
-template<typename NodeType>
-void call_tree_base_t<NodeType>::substract_from(unordered_call_tree_t& another_tree) const {
-	return substract_from(root, another_tree.root, another_tree);
-}
-
-template<typename NodeType>
-void call_tree_base_t<NodeType>::merge_into(p_node_t lhs_node, p_node_t rhs_node, unordered_call_tree_t& rhs_tree) const {
-	rhs_tree.set_node_time(rhs_node, rhs_tree.get_node_time(rhs_node) + get_node_time(lhs_node));
-	rhs_tree.set_node_calls_number(rhs_node, rhs_tree.get_node_calls_number(rhs_node) + get_node_calls_number(lhs_node));
-
-	for (auto it = nodes[lhs_node].links.begin(); it != nodes[lhs_node].links.end(); ++it) {
-		int action_code = it->first;
-		p_node_t lhs_next_node = it->second;
-		if (!rhs_tree.node_has_link(rhs_node, action_code)) {
-			rhs_tree.add_new_link(rhs_node, action_code);
-		}
-		p_node_t rhs_next_node = rhs_tree.get_node_link(rhs_node, action_code);
-		merge_into(lhs_next_node, rhs_next_node, rhs_tree);
-	}
-}
-
-template<typename NodeType>
-void call_tree_base_t<NodeType>::substract_from(p_node_t lhs_node, p_node_t rhs_node, unordered_call_tree_t& rhs_tree) const {
-	rhs_tree.set_node_time(rhs_node, rhs_tree.get_node_time(rhs_node) - get_node_time(lhs_node));
-	rhs_tree.set_node_calls_number(rhs_node, rhs_tree.get_node_calls_number(rhs_node) - get_node_calls_number(lhs_node));
-
-	for (auto it = nodes[lhs_node].links.begin(); it != nodes[lhs_node].links.end(); ++it) {
-		int action_code = it->first;
-		p_node_t lhs_next_node = it->second;
-		if (!rhs_tree.node_has_link(rhs_node, action_code)) {
-			rhs_tree.add_new_link(rhs_node, action_code);
-		}
-		p_node_t rhs_next_node = rhs_tree.get_node_link(rhs_node, action_code);
-		substract_from(lhs_next_node, rhs_next_node, rhs_tree);
-	}
 }
 
 class call_tree_t : public call_tree_base_t<ordered_node_t> {
@@ -431,20 +394,72 @@ public:
 		return add_new_link(node, action_code);
 	}
 
-	using Base::to_json;
-	using Base::merge_into;
+	using call_tree_base_t::to_json;
+	using call_tree_base_t::merge_into;
 
 private:
+	/*!
+	 * \internal
+	 *
+	 * \brief Recursively converts subtree to json
+	 * \param current_node Node which subtree will be converted
+	 * \param stat_value Json node for writing
+	 * \param allocator Json allocator
+	 * \return Modified json node
+	 */
+	rapidjson::Value& to_json(p_node_t current_node, rapidjson::Value &stat_value,
+							  rapidjson::Document::AllocatorType &allocator) const {
+		if (current_node != root) {
+			stat_value.AddMember("name", actions_set.get_action_name(get_node_action_code(current_node)).c_str(), allocator);
+			stat_value.AddMember("time", (int64_t) get_node_time(current_node), allocator);
+		}
+
+		if (!nodes[current_node].links.empty()) {
+			rapidjson::Value subtree_actions(rapidjson::kArrayType);
+
+			for (auto it = nodes[current_node].links.begin(); it != nodes[current_node].links.end(); ++it) {
+				p_node_t next_node = it->second;
+				rapidjson::Value subtree_value(rapidjson::kObjectType);
+				to_json(next_node, subtree_value, allocator);
+				subtree_actions.PushBack(subtree_value, allocator);
+			}
+
+			stat_value.AddMember("actions", subtree_actions, allocator);
+		}
+
+		return stat_value;
+	}
+
+	/*!
+	 * \internal
+	 *
+	 * \brief Recursively merges \a lhs_node into \a rhs_node
+	 * \param lhs_node Node which will be merged
+	 * \param rhs_node
+	 * \param rhs_tree
+	 */
+	void merge_into(p_node_t lhs_node, unordered_call_tree_t::p_node_t rhs_node, unordered_call_tree_t& rhs_tree) const {
+		rhs_tree.set_node_time(rhs_node, rhs_tree.get_node_time(rhs_node) + get_node_time(lhs_node));
+		rhs_tree.set_node_calls_number(rhs_node, rhs_tree.get_node_calls_number(rhs_node) + 1);
+
+		for (auto it = nodes[lhs_node].links.begin(); it != nodes[lhs_node].links.end(); ++it) {
+			int action_code = it->first;
+			p_node_t lhs_next_node = it->second;
+			if (!rhs_tree.node_has_link(rhs_node, action_code)) {
+				rhs_tree.add_new_link(rhs_node, action_code);
+			}
+			p_node_t rhs_next_node = rhs_tree.get_node_link(rhs_node, action_code);
+			merge_into(lhs_next_node, rhs_next_node, rhs_tree);
+		}
+	}
+
 };
 
 /*!
  * \brief Concurrent version of time stats tree to handle simultanious updates
  */
-template<typename TreeType>
 class concurrent_call_tree_t {
 public:
-	typedef TreeType unordered_call_tree_t;
-
 	/*!
 	 * \brief Initializes time_stats_tree with \a actions_set
 	 * \param actions_set Set of available action for monitoring
@@ -470,7 +485,7 @@ public:
 	 * \brief Returns inner time stats tree
 	 * \return Inner time stats tree
 	 */
-	TreeType& get_time_stats_tree() {
+	call_tree_t& get_time_stats_tree() {
 		return time_stats_tree;
 	}
 
@@ -478,9 +493,9 @@ public:
 	 * \brief Returns copy of inner time stats tree
 	 * \return Copy of inner time stats tree
 	 */
-	TreeType copy_time_stats_tree() const {
+	call_tree_t copy_time_stats_tree() const {
 		lock();
-		TreeType time_stats_tree_copy = time_stats_tree;
+		call_tree_t time_stats_tree_copy = time_stats_tree;
 		unlock();
 		return time_stats_tree_copy;
 	}
@@ -494,7 +509,7 @@ private:
 	/*!
 	 * \brief Inner time_stats_tree
 	 */
-	TreeType time_stats_tree;
+	call_tree_t time_stats_tree;
 };
 
 } // namespace react

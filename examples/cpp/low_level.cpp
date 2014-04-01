@@ -31,10 +31,7 @@ const int ACTION_READ_FROM_DISK = actions_set.define_new_action("READ FROM DISK"
 const int ACTION_PUT_INTO_CACHE = actions_set.define_new_action("PUT INTO CACHE");
 const int ACTION_LOAD_FROM_CACHE = actions_set.define_new_action("LOAD FROM CACHE");
 
-typedef concurrent_call_tree_t<call_tree_t> concurrent_time_stats_tree_t;
-typedef call_tree_updater_t<call_tree_t> time_stats_updater_t;
-
-time_stats_updater_t updater; // Updater for gathering of statistics.
+call_tree_updater_t updater; // Updater for gathering of statistics.
 
 // Defining stub functions
 bool find_record() {
@@ -106,7 +103,7 @@ void run_example() {
 	unordered_call_tree_t total_time_stats(actions_set);
 
 	for (int i = 0; i < ITERATIONS_NUMBER; ++i) {
-		concurrent_time_stats_tree_t time_stats(actions_set); // Call tree for storing statistics.
+		concurrent_call_tree_t time_stats(actions_set); // Call tree for storing statistics.
 		updater.set_time_stats_tree(time_stats);
 		std::string data = cache_read();
 		time_stats.get_time_stats_tree().merge_into(total_time_stats);

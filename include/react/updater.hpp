@@ -19,6 +19,8 @@
 #include <stack>
 #include <stdexcept>
 
+#include "call_tree.hpp"
+
 namespace react {
 
 /*!
@@ -26,21 +28,17 @@ namespace react {
  *
  *  Allows you to log actions in call-tree manner.
  */
-template<typename TreeType>
 class call_tree_updater_t {
 public:
-	typedef TreeType time_stats_tree_t;
-	typedef concurrent_call_tree_t<TreeType> concurrent_time_stats_tree_t;
-
 	/*!
 	 * \brief Call tree node type
 	 */
-	typedef typename time_stats_tree_t::node_t node_t;
+	typedef typename call_tree_t::node_t node_t;
 
 	/*!
 	 * \brief Pointer to call tree node type
 	 */
-	typedef typename time_stats_tree_t::p_node_t p_node_t;
+	typedef typename call_tree_t::p_node_t p_node_t;
 
 	/*!
 	 * \brief Time point type
@@ -53,7 +51,7 @@ public:
 	 */
 	call_tree_updater_t(const size_t max_depth = DEFAULT_DEPTH):
 		current_node(0), time_stats_tree(NULL), depth(0), max_depth(max_depth) {
-		measurements.emplace(std::chrono::system_clock::now(), +time_stats_tree_t::NO_NODE);
+		measurements.emplace(std::chrono::system_clock::now(), +call_tree_t::NO_NODE);
 	}
 
 	/*!
@@ -61,11 +59,11 @@ public:
 	 * \param time_stats_tree Tree used to monitor updates
 	 * \param max_depth Maximum monitored depth of call stack
 	 */
-	call_tree_updater_t(concurrent_time_stats_tree_t &time_stats_tree,
+	call_tree_updater_t(concurrent_call_tree_t &time_stats_tree,
 			const size_t max_depth = DEFAULT_DEPTH):
 		current_node(0), time_stats_tree(NULL), depth(0), max_depth(max_depth) {
 		set_time_stats_tree(time_stats_tree);
-		measurements.emplace(std::chrono::system_clock::now(), +time_stats_tree_t::NO_NODE);
+		measurements.emplace(std::chrono::system_clock::now(), +call_tree_t::NO_NODE);
 	}
 
 	/*!
@@ -79,7 +77,7 @@ public:
 	 * \brief Sets target tree for updates
 	 * \param time_stats_tree Tree used to monitor updates
 	 */
-	void set_time_stats_tree(concurrent_time_stats_tree_t &time_stats_tree) {
+	void set_time_stats_tree(concurrent_call_tree_t &time_stats_tree) {
 		check_for_extra_measurements();
 		current_node = time_stats_tree.get_time_stats_tree().root;
 		this->time_stats_tree = &time_stats_tree;
@@ -91,7 +89,7 @@ public:
 	 */
 	void reset_time_stats_tree() {
 		check_for_extra_measurements();
-		current_node = time_stats_tree_t::NO_NODE;
+		current_node = call_tree_t::NO_NODE;
 		this->time_stats_tree = NULL;
 		depth = 0;
 	}
@@ -141,7 +139,7 @@ public:
 			return;
 		}
 
-		std::lock_guard<concurrent_time_stats_tree_t> guard(*time_stats_tree);
+		std::lock_guard<concurrent_call_tree_t> guard(*time_stats_tree);
 
 		int expected_code = time_stats_tree->get_time_stats_tree().get_node_action_code(current_node);
 		if (expected_code != action_code) {
@@ -252,7 +250,6 @@ private:
 		measurement previous_measurement = measurements.top();
 		measurements.pop();
 		time_stats_tree->get_time_stats_tree().inc_node_time(current_node, delta(previous_measurement.start_time, end_time));
-		time_stats_tree->get_time_stats_tree().inc_node_calls_number(current_node);
 		current_node = previous_measurement.previous_node;
 		--depth;
 	}
@@ -270,7 +267,7 @@ private:
 	/*!
 	 * \brief Target call-tree
 	 */
-	concurrent_time_stats_tree_t* time_stats_tree;
+	concurrent_call_tree_t* time_stats_tree;
 
 	/*!
 	 * \brief Current call stack depth
@@ -288,8 +285,7 @@ private:
 	static const size_t DEFAULT_DEPTH = -1;
 };
 
-template<typename TreeType>
-class dummy_call_tree_updater_t : public call_tree_updater_t<TreeType> {
+class dummy_call_tree_updater_t : public call_tree_updater_t {
 public:
 	dummy_call_tree_updater_t() {}
 	~dummy_call_tree_updater_t() {}
@@ -301,15 +297,14 @@ public:
 /*!
  * \brief Auxiliary class for logging actions with variable place of stop time (branching/end of function/end of scope)
  */
-template<typename TreeType>
-class action_guard_base_t {
+class action_guard_t {
 public:
 	/*!
 	 * \brief Initializes guard and starts action with \a action_code
 	 * \param updater Updater whos start is called
 	 * \param action_code Code of new action
 	 */
-	action_guard_base_t(call_tree_updater_t<TreeType> *updater, const int action_code):
+	action_guard_t(call_tree_updater_t *updater, const int action_code):
 		updater(updater), action_code(action_code), is_stopped(false) {
 		if (updater) {
 			updater->start(action_code);
@@ -319,7 +314,7 @@ public:
 	/*!
 	 * \brief Stops action if it is not already stopped
 	 */
-	~action_guard_base_t() {
+	~action_guard_t() {
 		if (!is_stopped && updater) {
 			updater->stop(action_code);
 		}
@@ -343,7 +338,7 @@ private:
 	/*!
 	 * \brief Updater whos start/stop are called
 	 */
-	call_tree_updater_t<TreeType> *updater;
+	call_tree_updater_t *updater;
 
 	/*!
 	 * \brief Action code of guarded action
@@ -355,8 +350,6 @@ private:
 	 */
 	bool is_stopped;
 };
-
-typedef action_guard_base_t<call_tree_t> action_guard_t;
 
 } // namespace react
 

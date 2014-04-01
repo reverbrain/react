@@ -32,13 +32,10 @@ int react_define_new_action(const char *action_name) {
 	}
 }
 
-typedef concurrent_call_tree_t<call_tree_t> concurrent_call_tree;
-typedef call_tree_updater_t<call_tree_t>    call_tree_updater;
+struct react_call_tree_t : concurrent_call_tree_t {};
+struct react_call_tree_updater_t : call_tree_updater_t {};
 
-struct react_call_tree_t : concurrent_call_tree {};
-struct react_call_tree_updater_t : call_tree_updater {};
-
-static __thread call_tree_updater *thread_call_tree_updater = NULL;
+static __thread call_tree_updater_t *thread_call_tree_updater = NULL;
 
 #include <iostream>
 #include <mutex>
@@ -55,7 +52,7 @@ react_call_tree_t *react_create_call_tree() {
 			throw std::runtime_error(error_message);
 		}
 
-		return static_cast<react_call_tree_t*>(new concurrent_call_tree(*actions_set));
+		return static_cast<react_call_tree_t*>(new concurrent_call_tree_t(*actions_set));
 	} catch (std::exception& e) {
 		std::cerr << e.what() << std::endl;
 		return NULL;
@@ -64,7 +61,7 @@ react_call_tree_t *react_create_call_tree() {
 
 int react_cleanup_call_tree(react_call_tree_t *call_tree) {
 	try {
-		delete (reinterpret_cast<concurrent_call_tree*> (call_tree));
+		delete (reinterpret_cast<concurrent_call_tree_t*> (call_tree));
 	} catch (std::exception& e) {
 		std::cerr << e.what() << std::endl;
 		return -EFAULT;
@@ -81,7 +78,7 @@ react_call_tree_updater_t *react_create_call_tree_updater(react_call_tree_t *cal
 		}
 
 		thread_call_tree_updater =
-				new call_tree_updater(*reinterpret_cast<concurrent_call_tree*>(call_tree));
+				new call_tree_updater_t(*reinterpret_cast<concurrent_call_tree_t*>(call_tree));
 		return static_cast<react_call_tree_updater_t*>(thread_call_tree_updater);
 	} catch (std::exception& e) {
 		std::cerr << e.what() << std::endl;
@@ -98,7 +95,7 @@ int react_cleanup_call_tree_updater(react_call_tree_updater_t *updater) {
 		}
 
 		thread_call_tree_updater = NULL;
-		delete (reinterpret_cast<call_tree_updater*> (updater));
+		delete (reinterpret_cast<call_tree_updater_t*> (updater));
 	} catch (std::exception& e) {
 		std::cerr << e.what() << std::endl;
 		return -EFAULT;
@@ -148,7 +145,7 @@ const actions_set_t &get_actions_set() {
 }
 
 void merge_call_tree(react_call_tree_t *react_call_tree, unordered_call_tree_t &unordered_call_tree) {
-	reinterpret_cast<concurrent_call_tree*> (react_call_tree)->get_time_stats_tree().merge_into(unordered_call_tree);
+	reinterpret_cast<concurrent_call_tree_t*> (react_call_tree)->get_time_stats_tree().merge_into(unordered_call_tree);
 }
 
 } // namespace react
