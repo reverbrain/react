@@ -1,3 +1,9 @@
+react (1.0.1-1) unstable; urgency=medium
+
+  * Version changed to unstable.
+
+ -- Andrey Kashin <kashin.andrej@gmail.com>  Tue, 01 Apr 2014 22:49:15 +0400
+
 react (1.0.1) UNRELEASED; urgency=medium
 
   * Initial release. (Closes: #XXXXXX)
