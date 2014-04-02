@@ -145,7 +145,7 @@ const actions_set_t &get_actions_set() {
 }
 
 void merge_call_tree(react_call_tree_t *react_call_tree, unordered_call_tree_t &unordered_call_tree) {
-	reinterpret_cast<concurrent_call_tree_t*> (react_call_tree)->get_time_stats_tree().merge_into(unordered_call_tree);
+	reinterpret_cast<concurrent_call_tree_t*> (react_call_tree)->get_call_tree().merge_into(unordered_call_tree);
 }
 
 } // namespace react

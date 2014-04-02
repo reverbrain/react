@@ -33,12 +33,12 @@ public:
 	/*!
 	 * \brief Call tree node type
 	 */
-	typedef typename call_tree_t::node_t node_t;
+	typedef call_tree_t::node_t node_t;
 
 	/*!
 	 * \brief Pointer to call tree node type
 	 */
-	typedef typename call_tree_t::p_node_t p_node_t;
+	typedef call_tree_t::p_node_t p_node_t;
 
 	/*!
 	 * \brief Time point type
@@ -50,19 +50,19 @@ public:
 	 * \param max_depth Maximum monitored depth of call stack
 	 */
 	call_tree_updater_t(const size_t max_depth = DEFAULT_DEPTH):
-		current_node(0), time_stats_tree(NULL), depth(0), max_depth(max_depth) {
+		current_node(0), call_tree(NULL), depth(0), max_depth(max_depth) {
 		measurements.emplace(std::chrono::system_clock::now(), +call_tree_t::NO_NODE);
 	}
 
 	/*!
 	 * \brief Initializes updater with target tree
-	 * \param time_stats_tree Tree used to monitor updates
+	 * \param call_tree Tree used to monitor updates
 	 * \param max_depth Maximum monitored depth of call stack
 	 */
-	call_tree_updater_t(concurrent_call_tree_t &time_stats_tree,
+	call_tree_updater_t(concurrent_call_tree_t &call_tree,
 			const size_t max_depth = DEFAULT_DEPTH):
-		current_node(0), time_stats_tree(NULL), depth(0), max_depth(max_depth) {
-		set_time_stats_tree(time_stats_tree);
+		current_node(0), call_tree(NULL), depth(0), max_depth(max_depth) {
+		set_call_tree(call_tree);
 		measurements.emplace(std::chrono::system_clock::now(), +call_tree_t::NO_NODE);
 	}
 
@@ -75,22 +75,22 @@ public:
 
 	/*!
 	 * \brief Sets target tree for updates
-	 * \param time_stats_tree Tree used to monitor updates
+	 * \param call_tree Tree used to monitor updates
 	 */
-	void set_time_stats_tree(concurrent_call_tree_t &time_stats_tree) {
+	void set_call_tree(concurrent_call_tree_t &call_tree) {
 		check_for_extra_measurements();
-		current_node = time_stats_tree.get_time_stats_tree().root;
-		this->time_stats_tree = &time_stats_tree;
+		current_node = call_tree.get_call_tree().root;
+		this->call_tree = &call_tree;
 		depth = 0;
 	}
 
 	/*!
 	 * \brief Resets current call tree
 	 */
-	void reset_time_stats_tree() {
+	void reset_call_tree() {
 		check_for_extra_measurements();
 		current_node = call_tree_t::NO_NODE;
-		this->time_stats_tree = NULL;
+		this->call_tree = NULL;
 		depth = 0;
 	}
 
@@ -98,8 +98,8 @@ public:
 	 * \brief Checks whether tree for updates is set
 	 * \return whether updater target tree was set
 	 */
-	bool has_time_stats_tree() const {
-		return (time_stats_tree != NULL);
+	bool has_call_tree() const {
+		return (call_tree != NULL);
 	}
 
 	/*!
@@ -121,9 +121,9 @@ public:
 			return;
 		}
 
-		time_stats_tree->lock();
-		p_node_t next_node = time_stats_tree->get_time_stats_tree().add_new_link_if_missing(current_node, action_code);
-		time_stats_tree->unlock();
+		call_tree->lock();
+		p_node_t next_node = call_tree->get_call_tree().add_new_link_if_missing(current_node, action_code);
+		call_tree->unlock();
 
 		measurements.emplace(start_time, current_node);
 		current_node = next_node;
@@ -139,9 +139,9 @@ public:
 			return;
 		}
 
-		std::lock_guard<concurrent_call_tree_t> guard(*time_stats_tree);
+		std::lock_guard<concurrent_call_tree_t> guard(*call_tree);
 
-		int expected_code = time_stats_tree->get_time_stats_tree().get_node_action_code(current_node);
+		int expected_code = call_tree->get_call_tree().get_node_action_code(current_node);
 		if (expected_code != action_code) {
 			std::string expected_action_name = get_action_name(expected_code);
 			std::string found_action_name = get_action_name(action_code);
@@ -175,7 +175,7 @@ public:
 	 * \return Name of action with \a action_code
 	 */
 	std::string get_action_name(int action_code) const {
-		return time_stats_tree->get_time_stats_tree().get_actions_set().get_action_name(action_code);
+		return call_tree->get_call_tree().get_actions_set().get_action_name(action_code);
 	}
 
 	/*!
@@ -183,7 +183,7 @@ public:
 	 * \return Current's node action name
 	 */
 	std::string get_current_node_action_name() const {
-		return get_action_name(time_stats_tree->get_time_stats_tree().get_node_action_code(current_node));
+		return get_action_name(call_tree->get_call_tree().get_node_action_code(current_node));
 	}
 
 private:
@@ -205,7 +205,7 @@ private:
 	void check_for_extra_measurements() {
 		if (depth != 0) {
 			std::string error_message;
-			if (!time_stats_tree) {
+			if (!call_tree) {
 				error_message = "~time_stats_updater(): extra measurements, tree is NULL\n";
 			} else {
 				error_message = "~time_stats_updater(): extra measurements:\n";
@@ -249,7 +249,7 @@ private:
 	void pop_measurement(const time_point_t& end_time = std::chrono::system_clock::now()) {
 		measurement previous_measurement = measurements.top();
 		measurements.pop();
-		time_stats_tree->get_time_stats_tree().inc_node_time(current_node, delta(previous_measurement.start_time, end_time));
+		call_tree->get_call_tree().inc_node_time(current_node, delta(previous_measurement.start_time, end_time));
 		current_node = previous_measurement.previous_node;
 		--depth;
 	}
@@ -267,7 +267,7 @@ private:
 	/*!
 	 * \brief Target call-tree
 	 */
-	concurrent_call_tree_t* time_stats_tree;
+	concurrent_call_tree_t* call_tree;
 
 	/*!
 	 * \brief Current call stack depth

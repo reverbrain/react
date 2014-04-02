@@ -59,11 +59,13 @@ struct node_t {
 };
 
 struct unordered_node_t: public node_t< std::unordered_map<int, size_t> > {
+	typedef node_t< std::unordered_map<int, size_t> > Base;
+
 	/*!
 	 * \brief Initializes node with \a action_code and zero calls number
 	 * \param action_code Action code of the node
 	 */
-	unordered_node_t(int action_code): node_t(action_code), calls_number(0) {}
+	unordered_node_t(int action_code): Base(action_code), calls_number(0) {}
 
 	/*!
 	 * \brief number of calls in this node
@@ -72,11 +74,13 @@ struct unordered_node_t: public node_t< std::unordered_map<int, size_t> > {
 };
 
 struct ordered_node_t: public node_t< std::vector<std::pair<int, size_t> > > {
+	typedef node_t< std::vector< std::pair<int, size_t> > > Base;
+
 	/*!
 	 * \brief Initializes node with \a action_code
 	 * \param action_code Action code of the node
 	 */
-	ordered_node_t(int action_code): node_t(action_code) {}
+	ordered_node_t(int action_code): Base(action_code) {}
 };
 
 class unordered_call_tree_t;
@@ -295,8 +299,8 @@ public:
 		return link->second;
 	}
 
-	using call_tree_base_t::to_json;
-	using call_tree_base_t::merge_into;
+	using Base::to_json;
+	using Base::merge_into;
 
 private:
 	/*!
@@ -394,8 +398,8 @@ public:
 		return add_new_link(node, action_code);
 	}
 
-	using call_tree_base_t::to_json;
-	using call_tree_base_t::merge_into;
+	using Base::to_json;
+	using Base::merge_into;
 
 private:
 	/*!
@@ -461,10 +465,10 @@ private:
 class concurrent_call_tree_t {
 public:
 	/*!
-	 * \brief Initializes time_stats_tree with \a actions_set
+	 * \brief Initializes call_tree with \a actions_set
 	 * \param actions_set Set of available action for monitoring
 	 */
-	concurrent_call_tree_t(actions_set_t &actions_set): time_stats_tree(actions_set) {
+	concurrent_call_tree_t(actions_set_t &actions_set): call_tree(actions_set) {
 	}
 
 	/*!
@@ -485,19 +489,19 @@ public:
 	 * \brief Returns inner time stats tree
 	 * \return Inner time stats tree
 	 */
-	call_tree_t& get_time_stats_tree() {
-		return time_stats_tree;
+	call_tree_t& get_call_tree() {
+		return call_tree;
 	}
 
 	/*!
 	 * \brief Returns copy of inner time stats tree
 	 * \return Copy of inner time stats tree
 	 */
-	call_tree_t copy_time_stats_tree() const {
+	call_tree_t copy_call_tree() const {
 		lock();
-		call_tree_t time_stats_tree_copy = time_stats_tree;
+		call_tree_t call_tree_copy = call_tree;
 		unlock();
-		return time_stats_tree_copy;
+		return call_tree_copy;
 	}
 
 private:
@@ -507,9 +511,9 @@ private:
 	mutable std::mutex tree_mutex;
 
 	/*!
-	 * \brief Inner time_stats_tree
+	 * \brief Inner call_tree
 	 */
-	call_tree_t time_stats_tree;
+	call_tree_t call_tree;
 };
 
 } // namespace react

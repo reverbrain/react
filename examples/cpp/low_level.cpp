@@ -81,12 +81,12 @@ std::string cache_read() {
 }
 
 template<typename TreeType>
-void print_json(const TreeType &time_stats) {
+void print_json(const TreeType &call_tree) {
 	rapidjson::Document doc;
 	doc.SetObject();
 	auto &allocator = doc.GetAllocator();
 
-	time_stats.to_json(doc, allocator);
+	call_tree.to_json(doc, allocator);
 
 	rapidjson::StringBuffer buffer;
 	rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buffer);
@@ -100,17 +100,17 @@ const int ITERATIONS_NUMBER = 1000;
 void run_example() {
 	std::cout << "Running cache read " << ITERATIONS_NUMBER << " times" << std::endl;
 
-	unordered_call_tree_t total_time_stats(actions_set);
+	unordered_call_tree_t total_call_tree(actions_set);
 
 	for (int i = 0; i < ITERATIONS_NUMBER; ++i) {
-		concurrent_call_tree_t time_stats(actions_set); // Call tree for storing statistics.
-		updater.set_time_stats_tree(time_stats);
+		concurrent_call_tree_t call_tree(actions_set); // Call tree for storing statistics.
+		updater.set_call_tree(call_tree);
 		std::string data = cache_read();
-		time_stats.get_time_stats_tree().merge_into(total_time_stats);
-		updater.reset_time_stats_tree();
+		call_tree.get_call_tree().merge_into(total_call_tree);
+		updater.reset_call_tree();
 	}
 
-	print_json(total_time_stats);
+	print_json(total_call_tree);
 }
 
 int main() {
