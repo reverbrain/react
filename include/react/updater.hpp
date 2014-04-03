@@ -193,7 +193,7 @@ private:
 	 * \brief Returns delta between two time_points
 	 */
 	template<class Period = std::chrono::microseconds>
-	long long int delta(time_point_t& start, const time_point_t& end) const {
+	int64_t delta(const time_point_t& start, const time_point_t& end) const {
 		return (std::chrono::duration_cast<Period> (end - start)).count();
 	}
 
@@ -244,12 +244,13 @@ private:
 
 	/*!
 	 * \brief Removes measurement from top of call stack and updates corresponding node in call-tree
-	 * \param end_time End time of the measurement
+	 * \param stop_time End time of the measurement
 	 */
-	void pop_measurement(const time_point_t& end_time = std::chrono::system_clock::now()) {
+	void pop_measurement(const time_point_t& stop_time = std::chrono::system_clock::now()) {
 		measurement previous_measurement = measurements.top();
 		measurements.pop();
-		call_tree->get_call_tree().inc_node_time(current_node, delta(previous_measurement.start_time, end_time));
+		call_tree->get_call_tree().set_node_start_time(current_node, delta(time_point_t(), previous_measurement.start_time));
+		call_tree->get_call_tree().set_node_stop_time(current_node, delta(time_point_t(), stop_time));
 		current_node = previous_measurement.previous_node;
 		--depth;
 	}

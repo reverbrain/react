@@ -40,17 +40,12 @@ struct node_t {
 	 * \brief Initializes node with \a action_code and zero consumed time
 	 * \param action_code Action code of the node
 	 */
-	node_t(int action_code): action_code(action_code), time(0) {}
+	node_t(int action_code): action_code(action_code) {}
 
 	/*!
 	 * \brief action which this node represents
 	 */
 	int action_code;
-
-	/*!
-	 * \brief total time consumed in this node
-	 */
-	long long int time;
 
 	/*!
 	 * \brief Child nodes, actions that happen inside this action
@@ -65,12 +60,17 @@ struct unordered_node_t: public node_t< std::unordered_map<int, size_t> > {
 	 * \brief Initializes node with \a action_code and zero calls number
 	 * \param action_code Action code of the node
 	 */
-	unordered_node_t(int action_code): Base(action_code), calls_number(0) {}
+	unordered_node_t(int action_code): Base(action_code), time(0), calls_number(0) {}
+
+	/*!
+	 * \brief total time consumed in this node
+	 */
+	int64_t time;
 
 	/*!
 	 * \brief number of calls in this node
 	 */
-	long long int calls_number;
+	int64_t calls_number;
 };
 
 struct ordered_node_t: public node_t< std::vector<std::pair<int, size_t> > > {
@@ -80,7 +80,17 @@ struct ordered_node_t: public node_t< std::vector<std::pair<int, size_t> > > {
 	 * \brief Initializes node with \a action_code
 	 * \param action_code Action code of the node
 	 */
-	ordered_node_t(int action_code): Base(action_code) {}
+	ordered_node_t(int action_code): Base(action_code), start_time(0), stop_time(0) {}
+
+	/*!
+	 * \brief time when node action was started
+	 */
+	int64_t start_time;
+
+	/*!
+	 * \brief time when node action was stopped
+	 */
+	int64_t stop_time;
 };
 
 class unordered_call_tree_t;
@@ -117,45 +127,12 @@ public:
 	virtual ~call_tree_base_t() {}
 
 	/*!
-	 * \brief Substracts time stats of this tree from \a another tree
-	 * \param another_tree Tree from which this tree will be substracted
-	 */
-	void substract_from(unordered_call_tree_t& another_tree) const;
-
-	/*!
 	 * \brief Returns an action code for \a node
 	 * \param node Target node
 	 * \return Action code of the target node
 	 */
 	int get_node_action_code(p_node_t node) const {
 		return nodes[node].action_code;
-	}
-
-	/*!
-	 * \brief Sets total time consumed by action represented by \a node
-	 * \param node Action's node
-	 * \param time New time value
-	 */
-	void set_node_time(p_node_t node, long long time) {
-		nodes[node].time = time;
-	}
-
-	/*!
-	 * \brief Increments total time consumed by action represented by \a node
-	 * \param node Action's node
-	 * \param delta Value by which time will be incremented
-	 */
-	void inc_node_time(p_node_t node, long long delta) {
-		nodes[node].time += delta;
-	}
-
-	/*!
-	 * \brief Returns total time consumed by action represented by \a node
-	 * \param node Action's node
-	 * \return Time consumed by action
-	 */
-	long long int get_node_time(p_node_t node) const {
-		return nodes[node].time;
 	}
 
 	/*!
@@ -205,6 +182,7 @@ protected:
 		nodes.emplace_back(action_code);
 		return nodes.size() - 1;
 	}
+
 	/*!
 	 * \brief Tree nodes
 	 */
@@ -228,11 +206,38 @@ public:
 	~unordered_call_tree_t() {}
 
 	/*!
+	 * \brief Sets total time consumed by action represented by \a node
+	 * \param node Action's node
+	 * \param time New time value
+	 */
+	void set_node_time(p_node_t node, int64_t time) {
+		nodes[node].time = time;
+	}
+
+	/*!
+	 * \brief Increments total time consumed by action represented by \a node
+	 * \param node Action's node
+	 * \param delta Value by which time will be incremented
+	 */
+	void inc_node_time(p_node_t node, int64_t delta) {
+		nodes[node].time += delta;
+	}
+
+	/*!
+	 * \brief Returns total time consumed by action represented by \a node
+	 * \param node Action's node
+	 * \return Time consumed by action
+	 */
+	int64_t get_node_time(p_node_t node) const {
+		return nodes[node].time;
+	}
+
+	/*!
 	 * \brief Sets total calls number of action represented by \a node
 	 * \param node Action's node
 	 * \param time New calls number
 	 */
-	void set_node_calls_number(p_node_t node, long long calls_number) {
+	void set_node_calls_number(p_node_t node, int64_t calls_number) {
 		nodes[node].calls_number = calls_number;
 	}
 
@@ -249,7 +254,7 @@ public:
 	 * \param node Action's node
 	 * \return Time calls number of action
 	 */
-	long long int get_node_calls_number(p_node_t node) const {
+	int64_t get_node_calls_number(p_node_t node) const {
 		return nodes[node].calls_number;
 	}
 
@@ -377,6 +382,42 @@ public:
 	~call_tree_t() {}
 
 	/*!
+	 * \brief Sets time when action represented by \a node was started
+	 * \param node Action's node
+	 * \param time Time when action was started
+	 */
+	void set_node_start_time(p_node_t node, int64_t time) {
+		nodes[node].start_time = time;
+	}
+
+	/*!
+	 * \brief Sets time when action represented by \a node was stopped
+	 * \param node Action's node
+	 * \param time Time when action was stopped
+	 */
+	void set_node_stop_time(p_node_t node, int64_t time) {
+		nodes[node].stop_time = time;
+	}
+
+	/*!
+	 * \brief Returns start time of action represented by \a node
+	 * \param node Action's node
+	 * \return Start time of action
+	 */
+	int64_t get_node_start_time(p_node_t node) const {
+		return nodes[node].start_time;
+	}
+
+	/*!
+	 * \brief Returns stop time of action represented by \a node
+	 * \param node Action's node
+	 * \return Stop time of action
+	 */
+	int64_t get_node_stop_time(p_node_t node) const {
+		return nodes[node].stop_time;
+	}
+
+	/*!
 	 * \brief Adds new child to \a node with \a action_code
 	 * \param node Target node
 	 * \param action_code Child's action code
@@ -415,7 +456,8 @@ private:
 							  rapidjson::Document::AllocatorType &allocator) const {
 		if (current_node != root) {
 			stat_value.AddMember("name", actions_set.get_action_name(get_node_action_code(current_node)).c_str(), allocator);
-			stat_value.AddMember("time", (int64_t) get_node_time(current_node), allocator);
+			stat_value.AddMember("start_time", (int64_t) get_node_start_time(current_node), allocator);
+			stat_value.AddMember("stop_time", (int64_t) get_node_stop_time(current_node), allocator);
 		}
 
 		if (!nodes[current_node].links.empty()) {
@@ -443,7 +485,8 @@ private:
 	 * \param rhs_tree
 	 */
 	void merge_into(p_node_t lhs_node, unordered_call_tree_t::p_node_t rhs_node, unordered_call_tree_t& rhs_tree) const {
-		rhs_tree.set_node_time(rhs_node, rhs_tree.get_node_time(rhs_node) + get_node_time(lhs_node));
+		int64_t time_delta = get_node_stop_time(lhs_node) - get_node_start_time(lhs_node);
+		rhs_tree.set_node_time(rhs_node, rhs_tree.get_node_time(rhs_node) + time_delta);
 		rhs_tree.set_node_calls_number(rhs_node, rhs_tree.get_node_calls_number(rhs_node) + 1);
 
 		for (auto it = nodes[lhs_node].links.begin(); it != nodes[lhs_node].links.end(); ++it) {
@@ -456,7 +499,6 @@ private:
 			merge_into(lhs_next_node, rhs_next_node, rhs_tree);
 		}
 	}
-
 };
 
 /*!
@@ -468,8 +510,7 @@ public:
 	 * \brief Initializes call_tree with \a actions_set
 	 * \param actions_set Set of available action for monitoring
 	 */
-	concurrent_call_tree_t(actions_set_t &actions_set): call_tree(actions_set) {
-	}
+	concurrent_call_tree_t(actions_set_t &actions_set): call_tree(actions_set) {}
 
 	/*!
 	 * \brief Gets ownership of time stats tree
