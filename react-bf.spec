@@ -6,7 +6,7 @@
 
 Summary:	Distributed hash table storage
 Name:		react
-Version:	1.0.1
+Version:	1.0.3
 Release:	1%{?dist}
 
 License:	GPLv2+
@@ -74,5 +74,10 @@ rm -rf %{buildroot}
 %{_libdir}/libreact.so
 
 %changelog
+* Thu Apr 03 2014 Andrey Kashin <kashin.andrej@gmail.com> - 1.0.3
+- build: fixed lucid build (gcc 4.4)
+- Renaming time_stats to call_tree
+- ordered_node_t now has start_time and stop_time
+
 * Thu Mar 27 2014 Andrey Kashin <kashin.andrej@gmail.com> - 1.0.1
 - Initial release.

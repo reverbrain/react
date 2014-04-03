@@ -1,3 +1,11 @@
+react (1.0.3) unstable; urgency=low
+
+  * build: fixed lucid build (gcc 4.4)
+  * Renaming time_stats to call_tree
+  * ordered_node_t now has start_time and stop_time
+
+ -- Andrey Kashin <kashin.andrej@gmail.com>  Thu, 03 Apr 2014 17:32:01 +0400
+
 react (1.0.2) unstable; urgency=medium
 
   * Version changed to unstable.
