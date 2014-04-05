@@ -15,3 +15,5 @@ target_link_libraries(react-tests
 	boost_unit_test_framework
 	react
 )
+
+add_test(react-tests react-tests)

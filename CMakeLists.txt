@@ -25,6 +25,9 @@ include_directories("include/")
 add_definitions(-std=c++0x)
 
 if(ENABLE_TESTING)
+	enable_testing()
+	find_package(Boost COMPONENTS unit_test_framework REQUIRED)
+	include_directories(${Boost_INCLUDE_DIRS})
 	add_subdirectory(tests)
 endif()
 
