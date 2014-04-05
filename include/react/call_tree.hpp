@@ -118,7 +118,7 @@ public:
 	 * \param actions_set Set of available actions for monitoring in call tree
 	 */
 	call_tree_base_t(const actions_set_t &actions_set): actions_set(actions_set) {
-		root = new_node(-1);
+		root = new_node(+actions_set_t::NO_ACTION);
 	}
 
 	/*!
@@ -424,19 +424,15 @@ public:
 	 * \return Pointer to newly created child of \a node with \a action_code
 	 */
 	p_node_t add_new_link(p_node_t node, int action_code) {
+		if (!actions_set.code_is_valid(action_code)) {
+			throw std::invalid_argument(
+						"Can't add new link: action code is invalid"
+						);
+		}
+
 		p_node_t action_node = new_node(action_code);
 		nodes[node].links.push_back(std::make_pair(action_code, action_node));
 		return action_node;
-	}
-
-	/*!
-	 * \brief Adds new child to \a node with \a action_code if it's missing
-	 * \param node Target node
-	 * \param action_code Child's action code
-	 * \return Pointer to child of \a node with \a action_code
-	 */
-	p_node_t add_new_link_if_missing(p_node_t node, int action_code) {
-		return add_new_link(node, action_code);
 	}
 
 	using Base::to_json;
