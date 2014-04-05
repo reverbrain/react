@@ -16,6 +16,8 @@
 #ifndef REACT_HPP
 #define REACT_HPP
 
+#include <memory>
+
 #include "react/call_tree.hpp"
 #include "react/updater.hpp"
 
@@ -31,13 +33,15 @@ public:
 
 	action_guard &operator =(const action_guard &other) = delete;
 
+	void stop();
+
 private:
-	react::action_guard_t m_action_guard;
+	std::unique_ptr<react::action_guard_t> m_action_guard;
 };
 
 const actions_set_t &get_actions_set();
 
-void merge_call_tree(react_call_tree_t* react_call_tree, unordered_call_tree_t &unordered_call_tree);
+call_tree_t get_react_context_call_tree(react_context_t *react_context);
 
 } // namespace react
 

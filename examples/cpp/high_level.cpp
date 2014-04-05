@@ -100,14 +100,12 @@ void run_example() {
 	react::unordered_call_tree_t total_time_stats(react::get_actions_set());
 
 	for (int i = 0; i < ITERATIONS_NUMBER; ++i) {
-		react_call_tree_t *call_tree = react_create_call_tree();
-		react_call_tree_updater_t *call_tree_updater = react_create_call_tree_updater(call_tree);
+		react_context_t *react_context = react_activate();
 
 		std::string data = cache_read();
 
-		react::merge_call_tree(call_tree, total_time_stats);
-		react_cleanup_call_tree_updater(call_tree_updater);
-		react_cleanup_call_tree(call_tree);
+		react::get_react_context_call_tree(react_context).merge_into(total_time_stats);
+		react_deactivate(react_context);
 	}
 
 	print_json(total_time_stats);
