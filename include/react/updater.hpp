@@ -46,11 +46,17 @@ public:
 	typedef std::chrono::time_point<std::chrono::system_clock> time_point_t;
 
 	/*!
+	 * \brief Default monitored call stack depth
+	 */
+	static const size_t DEFAULT_MAX_TRACE_DEPTH = -1;
+
+	/*!
 	 * \brief Initializes updater without target tree
 	 * \param max_depth Maximum monitored depth of call stack
 	 */
-	call_tree_updater_t(const size_t max_depth = DEFAULT_DEPTH):
-		current_node(0), call_tree(NULL), depth(0), max_depth(max_depth) {
+	call_tree_updater_t(const size_t max_depth = DEFAULT_MAX_TRACE_DEPTH):
+		current_node(+call_tree_t::NO_NODE), call_tree(NULL),
+		trace_depth(0), max_trace_depth(max_depth) {
 		measurements.emplace(std::chrono::system_clock::now(), +call_tree_t::NO_NODE);
 	}
 
@@ -60,8 +66,9 @@ public:
 	 * \param max_depth Maximum monitored depth of call stack
 	 */
 	call_tree_updater_t(concurrent_call_tree_t &call_tree,
-			const size_t max_depth = DEFAULT_DEPTH):
-		current_node(0), call_tree(NULL), depth(0), max_depth(max_depth) {
+			const size_t max_depth = DEFAULT_MAX_TRACE_DEPTH):
+		current_node(+call_tree_t::NO_NODE), call_tree(NULL),
+		trace_depth(0), max_trace_depth(max_depth) {
 		set_call_tree(call_tree);
 		measurements.emplace(std::chrono::system_clock::now(), +call_tree_t::NO_NODE);
 	}
@@ -69,8 +76,12 @@ public:
 	/*!
 	 * \brief Checks if all actions were correctly finished.
 	 */
-	virtual ~call_tree_updater_t() {
-		check_for_extra_measurements();
+	~call_tree_updater_t() {
+		try {
+			check_for_extra_measurements();
+		} catch (std::logic_error &e) {
+			std::cerr << e.what() << std::endl;
+		}
 	}
 
 	/*!
@@ -81,7 +92,7 @@ public:
 		check_for_extra_measurements();
 		current_node = call_tree.get_call_tree().root;
 		this->call_tree = &call_tree;
-		depth = 0;
+		trace_depth = 0;
 	}
 
 	/*!
@@ -91,7 +102,7 @@ public:
 		check_for_extra_measurements();
 		current_node = call_tree_t::NO_NODE;
 		this->call_tree = NULL;
-		depth = 0;
+		trace_depth = 0;
 	}
 
 	/*!
@@ -106,7 +117,7 @@ public:
 	 * \brief Starts new branch in tree with action \a action_code
 	 * \param action_code Code of new action
 	 */
-	virtual void start(const int action_code) {
+	void start(const int action_code) {
 		start(action_code, std::chrono::system_clock::now());
 	}
 
@@ -116,14 +127,22 @@ public:
 	 * \param start_time Action start time
 	 */
 	void start(const int action_code, const time_point_t& start_time) {
-		++depth;
-		if (get_depth() > max_depth) {
+		if (!action_code_is_valid(action_code)) {
+			throw std::invalid_argument(
+						"Can't start action: action code is invalid: " + std::to_string(action_code)
+						);
+		}
+
+		++trace_depth;
+		if (get_trace_depth() > max_trace_depth) {
 			return;
 		}
 
-		call_tree->lock();
-		p_node_t next_node = call_tree->get_call_tree().add_new_link_if_missing(current_node, action_code);
-		call_tree->unlock();
+		p_node_t next_node = call_tree_t::NO_NODE;
+		{
+			std::lock_guard<concurrent_call_tree_t> guard(*call_tree);
+			next_node = call_tree->get_call_tree().add_new_link(current_node, action_code);
+		}
 
 		measurements.emplace(start_time, current_node);
 		current_node = next_node;
@@ -133,9 +152,15 @@ public:
 	 * \brief Stops last action. Updates total consumed time in call-tree.
 	 * \param action_code Code of finished action
 	 */
-	virtual void stop(const int action_code) {
-		if (get_depth() > max_depth) {
-			--depth;
+	void stop(const int action_code) {
+		if (!action_code_is_valid(action_code)) {
+			throw std::invalid_argument(
+						"Can't stop action: action code is invalid: " + std::to_string(action_code)
+						);
+		}
+
+		if (get_trace_depth() > max_trace_depth) {
+			--trace_depth;
 			return;
 		}
 
@@ -151,23 +176,39 @@ public:
 	}
 
 	/*!
+	 * \brief Gets max allowed call stack depth
+	 * \return Max allowed call stack depth
+	 */
+	size_t get_max_trace_depth() const {
+		return max_trace_depth;
+	}
+
+	/*!
 	 * \brief Sets max monitored call stack depth to \a max_depth
 	 * \param max_depth Max monitored call stack depth
 	 */
-	void set_max_depth(const size_t max_depth) {
-		if (depth != 0) {
+	void set_max_trace_depth(const size_t max_depth) {
+		if (trace_depth != 0) {
 			throw std::logic_error("can't change max_depth during update");
 		}
 
-		this->max_depth = max_depth;
+		this->max_trace_depth = max_depth;
 	}
 
 	/*!
 	 * \brief Gets current call stack depth
 	 * \return Current call stack depth
 	 */
-	size_t get_depth() const {
-		return depth;
+	size_t get_actual_trace_depth() const {
+		return measurements.size() - 1;
+	}
+
+	/*!
+	 * \brief Gets current intended call stack depth
+	 * \return Current intended call stack depth
+	 */
+	size_t get_trace_depth() const {
+		return trace_depth;
 	}
 
 	/*!
@@ -175,7 +216,31 @@ public:
 	 * \return Name of action with \a action_code
 	 */
 	std::string get_action_name(int action_code) const {
+		if (!has_call_tree()) {
+			throw std::logic_error("Can't get action name: tree is not set");
+		}
+
 		return call_tree->get_call_tree().get_actions_set().get_action_name(action_code);
+	}
+
+	/*!
+	 * \brief Checks whether \a action_code is registred in actions_set
+	 * \return True if \a action_code is registred, false otherwise
+	 */
+	bool action_code_is_valid(int action_code) {
+		if (!has_call_tree()) {
+			throw std::logic_error("Can't check action_code validity: tree is not set");
+		}
+
+		return call_tree->get_call_tree().get_actions_set().code_is_valid(action_code);
+	}
+
+	/*!
+	 * \brief Returns updater's current node or NO_NODE if call tree is not set
+	 * \return Pointer to updater's current node
+	 */
+	p_node_t get_current_node() const {
+		return current_node;
 	}
 
 	/*!
@@ -183,6 +248,10 @@ public:
 	 * \return Current's node action name
 	 */
 	std::string get_current_node_action_name() const {
+		if (!has_call_tree()) {
+			throw std::logic_error("Can't get action name: tree is not set");
+		}
+
 		return get_action_name(call_tree->get_call_tree().get_node_action_code(current_node));
 	}
 
@@ -203,18 +272,22 @@ private:
 	 * \brief Assures that updater is empty
 	 */
 	void check_for_extra_measurements() {
-		if (depth != 0) {
+		if (get_trace_depth() != 0) {
 			std::string error_message;
 			if (!call_tree) {
 				error_message = "~time_stats_updater(): extra measurements, tree is NULL\n";
 			} else {
 				error_message = "~time_stats_updater(): extra measurements:\n";
-				while (!measurements.empty()) {
+				if (get_actual_trace_depth() != get_trace_depth()) {
+					error_message +=
+							std::to_string(get_trace_depth() - get_actual_trace_depth())
+							+ " untracked actions due to max depth\n";
+				}
+				while (get_actual_trace_depth() > 0) {
 					error_message += get_current_node_action_name() + '\n';
 					pop_measurement();
 				}
 			}
-			std::cerr << error_message << std::endl;
 			throw std::logic_error(error_message);
 		}
 	}
@@ -252,7 +325,7 @@ private:
 		call_tree->get_call_tree().set_node_start_time(current_node, delta(time_point_t(), previous_measurement.start_time));
 		call_tree->get_call_tree().set_node_stop_time(current_node, delta(time_point_t(), stop_time));
 		current_node = previous_measurement.previous_node;
-		--depth;
+		--trace_depth;
 	}
 
 	/*!
@@ -273,26 +346,12 @@ private:
 	/*!
 	 * \brief Current call stack depth
 	 */
-	size_t depth;
+	size_t trace_depth;
 
 	/*!
 	 * \brief Maximum monitored call stack depth
 	 */
-	size_t max_depth;
-
-	/*!
-	 * \brief Default monitored call stack depth
-	 */
-	static const size_t DEFAULT_DEPTH = -1;
-};
-
-class dummy_call_tree_updater_t : public call_tree_updater_t {
-public:
-	dummy_call_tree_updater_t() {}
-	~dummy_call_tree_updater_t() {}
-
-	void start(int) {}
-	void stop(int) {}
+	size_t max_trace_depth;
 };
 
 /*!
@@ -326,13 +385,25 @@ public:
 	 */
 	void stop() {
 		if (is_stopped) {
-			throw std::logic_error("action " + updater->get_action_name(action_code) + " is already stopped");
+			std::string error_message;
+
+			if (updater) {
+				error_message = "action "
+						+ updater->get_action_name(action_code)
+						+ " is already stopped";
+			} else {
+				error_message = "action "
+						+ std::to_string(action_code)
+						+ " is already stopped";
+			}
+
+			throw std::logic_error(error_message);
 		}
 
 		if (updater) {
 			updater->stop(action_code);
-			is_stopped = true;
 		}
+		is_stopped = true;
 	}
 
 private:
