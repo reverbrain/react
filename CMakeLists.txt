@@ -1,4 +1,4 @@
-cmake_minimum_required (VERSION 2.6 FATAL_ERROR)
+cmake_minimum_required(VERSION 2.6 FATAL_ERROR)
 
 project(react)
 
@@ -33,6 +33,10 @@ endif()
 
 if(ENABLE_EXAMPLES)
 	add_subdirectory(examples)
+endif()
+
+if(ENABLE_BENCHMARKING)
+	add_subdirectory(benchmarks)
 endif()
 
 # Build react library
