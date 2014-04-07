@@ -8,7 +8,7 @@ REACT_VERSION := "$(shell dpkg-parsechangelog | sed -n -r -e 's/^Version: ([^.]+
 DEB_CMAKE_EXTRA_FLAGS := -DCMAKE_BUILD_TYPE=RelWithDebInfo
 
 DEB_DH_MAKESHLIBS_ARGS_react := -V "react (>= $(REACT_VERSION))"
-#DEB_MAKE_CHECK_TARGET=test
+DEB_MAKE_CHECK_TARGET = check
 
 DEB_BUILD_PARALLEL = yes
 DEB_PARALLEL_JOBS ?= $(shell getconf _NPROCESSORS_ONLN 2>/dev/null || echo 1)

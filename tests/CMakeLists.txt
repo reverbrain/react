@@ -16,4 +16,13 @@ target_link_libraries(react-tests
 	react
 )
 
+set(TEST_LINK_FLAGS "-Wl,-rpath,${CMAKE_CURRENT_BINARY_DIR}:${CMAKE_CURRENT_BINARY_DIR}/../:")
+
+set_target_properties(react-tests PROPERTIES
+	LINK_FLAGS "${TEST_LINK_FLAGS}"
+	LINKER_LANGUAGE CXX
+)
+
 add_test(react-tests react-tests)
+
+add_custom_target(check COMMAND ${CMAKE_CTEST_COMMAND} --verbose)

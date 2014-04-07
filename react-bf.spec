@@ -51,6 +51,7 @@ CXXFLAGS="-pthread" %{cmake} .
 %endif
 
 make %{?_smp_mflags}
+make check
 
 %install
 rm -rf %{buildroot}
