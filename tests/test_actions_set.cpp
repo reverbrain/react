@@ -4,7 +4,7 @@
 
 #include "react/actions_set.hpp"
 
-BOOST_AUTO_TEST_SUITE( define_new_action_suite )
+BOOST_AUTO_TEST_SUITE( actions_set_suite )
 
 using namespace react;
 
