@@ -6,3 +6,6 @@ add_executable(low_level low_level.cpp)
 
 add_executable(high_level high_level.cpp)
 target_link_libraries(high_level react)
+
+add_executable(aggregators aggregators.cpp)
+target_link_libraries(aggregators react)
