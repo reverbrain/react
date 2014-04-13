@@ -19,7 +19,8 @@
 
 #include <thread>
 
-#include <react/react.hpp>
+#include "react/react.hpp"
+#include "react/utils.hpp"
 
 const int ACTION_READ = react_define_new_action("READ");
 const int ACTION_FIND = react_define_new_action("FIND");
@@ -75,21 +76,6 @@ std::string cache_read() {
 	data = load_from_cache();
 
 	return data;
-}
-
-template<typename TreeType>
-void print_json(const TreeType &time_stats) {
-	rapidjson::Document doc;
-	doc.SetObject();
-	auto &allocator = doc.GetAllocator();
-
-	time_stats.to_json(doc, allocator);
-
-	rapidjson::StringBuffer buffer;
-	rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buffer);
-	doc.Accept(writer);
-	std::string result = buffer.GetString();
-	std::cout << result << std::endl;
 }
 
 const int ITERATIONS_NUMBER = 1000;
