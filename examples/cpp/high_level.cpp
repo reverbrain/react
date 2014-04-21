@@ -87,11 +87,10 @@ void run_example() {
 	react::unordered_call_tree_aggregator_t aggregator(react::get_actions_set());
 
 	for (int i = 0; i < ITERATIONS_NUMBER; ++i) {
-		react_context_t *react_context = react_activate();
+		react_context_t *react_context = react_activate(&aggregator);
 
 		std::string data = cache_read();
 
-		aggregator.aggregate(react::get_react_context_call_tree(react_context));
 		react_deactivate(react_context);
 	}
 

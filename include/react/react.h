@@ -35,11 +35,6 @@
 Q_EXTERN_C int react_define_new_action(const char *action_name);
 
 /*!
- * \brief Stores aggregated react statistics
- */
-struct react_aggregator_t;
-
-/*!
  * \brief Structure that hold thread local react context
  */
 struct react_context_t;
@@ -55,7 +50,7 @@ Q_EXTERN_C int react_is_active();
  * \param react_aggregator Aggregator that will be used to aggregate react trace
  * \return Pointer to created react_context
  */
-Q_EXTERN_C struct react_context_t *react_activate(struct react_aggregator_t *react_aggregator = NULL);
+Q_EXTERN_C struct react_context_t *react_activate(void *react_aggregator = NULL);
 
 /*!
  * \brief Cleanups react_context_t by pointer
