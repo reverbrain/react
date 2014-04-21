@@ -1,19 +1,9 @@
-#ifndef AGGREGATOR_HPP
-#define AGGREGATOR_HPP
+#ifndef RECENT_TREES_AGGREGATOR_HPP
+#define RECENT_TREES_AGGREGATOR_HPP
 
-#include <list>
-
-#include "call_tree.hpp"
+#include "aggregator.hpp"
 
 namespace react {
-
-class aggregator_t {
-public:
-	aggregator_t() {}
-	virtual ~aggregator_t() {}
-	virtual void aggregate(const call_tree_t &call_tree) = 0;
-	virtual void to_json(rapidjson::Value &value, rapidjson::Document::AllocatorType &allocator) const = 0;
-};
 
 class recent_trees_aggregator_t : public aggregator_t {
 public:
@@ -44,4 +34,4 @@ private:
 
 } // namespace react
 
-#endif // AGGREGATOR_HPP
+#endif // RECENT_TREES_AGGREGATOR_HPP

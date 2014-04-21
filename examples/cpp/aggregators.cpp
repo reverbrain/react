@@ -1,5 +1,5 @@
 #include "react/react.hpp"
-#include "react/aggregator.hpp"
+#include "react/aggregators/recent_trees_aggregator.hpp"
 #include "react/utils.hpp"
 
 int action_code = react_define_new_action("ACTION");

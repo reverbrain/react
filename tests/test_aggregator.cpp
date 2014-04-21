@@ -2,7 +2,7 @@
 
 #include "tests.hpp"
 
-#include "react/aggregator.hpp"
+#include "react/aggregators/recent_trees_aggregator.hpp"
 
 BOOST_AUTO_TEST_SUITE( aggregator_suite )
 
