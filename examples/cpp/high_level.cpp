@@ -21,6 +21,7 @@
 
 #include "react/react.hpp"
 #include "react/utils.hpp"
+#include "react/aggregators/unordered_call_tree_aggregator.hpp"
 
 const int ACTION_READ = react_define_new_action("READ");
 const int ACTION_FIND = react_define_new_action("FIND");
@@ -83,18 +84,18 @@ const int ITERATIONS_NUMBER = 1000;
 void run_example() {
 	std::cout << "Running cache read " << ITERATIONS_NUMBER << " times" << std::endl;
 
-	react::unordered_call_tree_t total_time_stats(react::get_actions_set());
+	react::unordered_call_tree_aggregator_t aggregator(react::get_actions_set());
 
 	for (int i = 0; i < ITERATIONS_NUMBER; ++i) {
 		react_context_t *react_context = react_activate();
 
 		std::string data = cache_read();
 
-		react::get_react_context_call_tree(react_context).merge_into(total_time_stats);
+		aggregator.aggregate(react::get_react_context_call_tree(react_context));
 		react_deactivate(react_context);
 	}
 
-	print_json(total_time_stats);
+	print_json(aggregator);
 }
 
 int main() {

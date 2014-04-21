@@ -21,6 +21,7 @@
 
 #include "react/react.hpp"
 #include "react/utils.hpp"
+#include "react/aggregators/unordered_call_tree_aggregator.hpp"
 
 using namespace react;
 
@@ -86,17 +87,17 @@ const int ITERATIONS_NUMBER = 1000;
 void run_example() {
 	std::cout << "Running cache read " << ITERATIONS_NUMBER << " times" << std::endl;
 
-	unordered_call_tree_t total_call_tree(actions_set);
+	unordered_call_tree_aggregator_t aggregator(actions_set);
 
 	for (int i = 0; i < ITERATIONS_NUMBER; ++i) {
 		concurrent_call_tree_t call_tree(actions_set); // Call tree for storing statistics.
 		updater.set_call_tree(call_tree);
 		std::string data = cache_read();
-		call_tree.get_call_tree().merge_into(total_call_tree);
+		aggregator.aggregate(call_tree.get_call_tree());
 		updater.reset_call_tree();
 	}
 
-	print_json(total_call_tree);
+	print_json(aggregator);
 }
 
 int main() {
