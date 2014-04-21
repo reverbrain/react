@@ -34,12 +34,15 @@ int react_define_new_action(const char *action_name) {
 	}
 }
 
+struct react_aggregator_t : public react::aggregator_t {};
+
 struct react_context_t {
-	react_context_t():
-		call_tree(*actions_set), updater(call_tree) {}
+	react_context_t(react_aggregator_t *aggregator):
+		call_tree(*actions_set), updater(call_tree), aggregator(aggregator) {}
 
 	concurrent_call_tree_t call_tree;
 	call_tree_updater_t updater;
+	react_aggregator_t *aggregator;
 };
 
 static __thread react_context_t *thread_react_context = NULL;
@@ -48,14 +51,14 @@ int react_is_active() {
 	return thread_react_context != NULL;
 }
 
-react_context_t *react_activate() {
+react_context_t *react_activate(react_aggregator_t *react_aggregator) {
 	try {
 		if (react_is_active()) {
 			std::string error_message("Can't activate react: React is already active");
 			throw std::runtime_error(error_message);
 		}
 
-		thread_react_context = new react_context_t();
+		thread_react_context = new react_context_t(react_aggregator);
 		return thread_react_context;
 	} catch (std::exception &e) {
 		std::cerr << e.what() << std::endl;
@@ -76,6 +79,9 @@ int react_deactivate(react_context_t *react_context) {
 			throw std::invalid_argument(error_message);
 		}
 
+		if (thread_react_context->aggregator) {
+			thread_react_context->aggregator->aggregate(thread_react_context->call_tree.get_call_tree());
+		}
 		delete thread_react_context;
 		thread_react_context = NULL;
 	} catch (std::exception &e) {
