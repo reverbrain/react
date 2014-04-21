@@ -70,6 +70,11 @@ public:
 		return actions_names.at(action_code);
 	}
 
+	/*!
+	 * \brief Checks whether \a action_code is registred in actions_set
+	 * \param action_code
+	 * \return True if \a action_code is registred, false otherwise
+	 */
 	bool code_is_valid(int action_code) const {
 		if (action_code == NO_ACTION) {
 			return false;
