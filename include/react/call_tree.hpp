@@ -262,6 +262,15 @@ public:
 		return action_node;
 	}
 
+	/*!
+	 * \brief Recursively merges this tree into \a rhs_node
+	 * \param rhs_node Node in which this tree will be merged
+	 * \param rhs_tree Tree in which this tree will be merged
+	 */
+	void merge_into(call_tree_t::p_node_t rhs_node, call_tree_t& rhs_tree) const {
+		merge_into(root, rhs_node, rhs_tree);
+	}
+
 	using Base::to_json;
 
 private:
@@ -303,12 +312,14 @@ private:
 	 *
 	 * \brief Recursively merges \a lhs_node into \a rhs_node
 	 * \param lhs_node Node which will be merged
-	 * \param rhs_node
-	 * \param rhs_tree
+	 * \param rhs_node Node in which this tree will be merged
+	 * \param rhs_tree Tree in which this tree will be merged
 	 */
 	void merge_into(p_node_t lhs_node, call_tree_t::p_node_t rhs_node, call_tree_t& rhs_tree) const {
-		rhs_tree.set_node_start_time(rhs_node, get_node_start_time(lhs_node));
-		rhs_tree.set_node_stop_time(rhs_node, get_node_stop_time(lhs_node));
+		if (lhs_node != root) {
+			rhs_tree.set_node_start_time(rhs_node, get_node_start_time(lhs_node));
+			rhs_tree.set_node_stop_time(rhs_node, get_node_stop_time(lhs_node));
+		}
 
 		for (auto it = nodes[lhs_node].links.begin(); it != nodes[lhs_node].links.end(); ++it) {
 			int action_code = it->first;
