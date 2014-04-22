@@ -27,7 +27,49 @@
 #include <vector>
 #include <mutex>
 
+#include <boost/variant.hpp>
+#include <boost/optional.hpp>
+
 namespace react {
+
+typedef boost::variant<
+	bool,
+	int,
+	double,
+	std::string
+> stat_value_t;
+
+struct JsonRenderer : boost::static_visitor<>
+{
+	JsonRenderer(const std::string &key, rapidjson::Value &stat_value,
+			 rapidjson::Document::AllocatorType &allocator):
+		key(key), stat_value(stat_value), allocator(allocator) {}
+
+	void operator () (bool value) const
+	{
+		stat_value.AddMember(key.c_str(), value, allocator);
+	}
+
+	void operator () (int value) const
+	{
+		stat_value.AddMember(key.c_str(), value, allocator);
+	}
+
+	void operator () (double value) const
+	{
+		stat_value.AddMember(key.c_str(), value, allocator);
+	}
+
+	void operator () (const std::string& value) const
+	{
+		stat_value.AddMember(key.c_str(), value.c_str(), allocator);
+	}
+
+private:
+	std::string key;
+	rapidjson::Value &stat_value;
+	rapidjson::Document::AllocatorType &allocator;
+};
 
 template<typename Container>
 struct node_t {
@@ -271,6 +313,24 @@ public:
 		merge_into(root, rhs_node, rhs_tree);
 	}
 
+	template<typename T>
+	void add_stat(const std::string &key, T value) {
+		stats[key] = value;
+	}
+
+	void add_stat(const std::string &key, const char *value) {
+		stats[key] = std::string(value);
+	}
+
+	bool has_stat(const std::string &key) const {
+		return stats.find(key) != stats.end();
+	}
+
+	template<typename T>
+	const T &get_stat(const std::string &key) const {
+		return boost::get<T>(stats.at(key));
+	}
+
 	using Base::to_json;
 
 private:
@@ -289,6 +349,10 @@ private:
 			stat_value.AddMember("name", actions_set.get_action_name(get_node_action_code(current_node)).c_str(), allocator);
 			stat_value.AddMember("start_time", (int64_t) get_node_start_time(current_node), allocator);
 			stat_value.AddMember("stop_time", (int64_t) get_node_stop_time(current_node), allocator);
+		} else {
+			for (const auto &stat : stats) {
+				boost::apply_visitor(JsonRenderer(stat.first, stat_value, allocator), stat.second);
+			}
 		}
 
 		if (!nodes[current_node].links.empty()) {
@@ -328,6 +392,8 @@ private:
 			merge_into(lhs_next_node, rhs_next_node, rhs_tree);
 		}
 	}
+
+	std::unordered_map<std::string, stat_value_t> stats;
 };
 
 /*!
