@@ -73,4 +73,17 @@ Q_EXTERN_C int react_start_action(int action_code);
  */
 Q_EXTERN_C int react_stop_action(int action_code);
 
+/*!
+ *  Functions that allow to put different stats into current react context
+ */
+Q_EXTERN_C int react_add_stat_bool(const char *key, bool value);
+Q_EXTERN_C int react_add_stat_int(const char *key, int value);
+Q_EXTERN_C int react_add_stat_double(const char *key, double value);
+Q_EXTERN_C int react_add_stat_string(const char *key, const char *value);
+
+/*!
+ * \brief Submits current context to aggregator
+ */
+Q_EXTERN_C int react_submit_progress();
+
 #endif // REACT_H

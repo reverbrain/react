@@ -42,6 +42,15 @@ private:
 
 const actions_set_t &get_actions_set();
 
+void add_stat_impl(const std::string &key, const react::stat_value_t &value);
+
+template<typename T>
+void add_stat(const std::string &key, const T &value) {
+	add_stat_impl(key, react::stat_value_t(value));
+}
+
+void add_stat(const std::string &key, const char *value);
+
 call_tree_t get_react_context_call_tree(react_context_t *react_context);
 
 } // namespace react

@@ -59,6 +59,9 @@ react_context_t *react_activate(void *react_aggregator) {
 		thread_react_context = new react_context_t(
 					static_cast<react::aggregator_t*>(react_aggregator)
 		);
+
+		react::add_stat("complete", false);
+
 		return thread_react_context;
 	} catch (std::exception &e) {
 		std::cerr << e.what() << std::endl;
@@ -78,6 +81,8 @@ int react_deactivate(react_context_t *react_context) {
 									  thread_local context");
 			throw std::invalid_argument(error_message);
 		}
+
+		react::add_stat("complete", true);
 
 		if (thread_react_context->aggregator) {
 			thread_react_context->aggregator->aggregate(thread_react_context->call_tree.get_call_tree());
@@ -119,6 +124,78 @@ int react_stop_action(int action_code) {
 	return 0;
 }
 
+int react_add_stat_bool(const char *key, bool value) {
+	try {
+		if (!react_is_active()) {
+			return 0;
+		}
+
+		react::add_stat(std::string(key), value);
+	} catch (std::exception& e) {
+		std::cerr << e.what() << std::endl;
+		return -EINVAL;
+	}
+	return 0;
+}
+
+int react_add_stat_int(const char *key, int value) {
+	try {
+		if (!react_is_active()) {
+			return 0;
+		}
+
+		react::add_stat(std::string(key), value);
+	} catch (std::exception& e) {
+		std::cerr << e.what() << std::endl;
+		return -EINVAL;
+	}
+	return 0;
+}
+
+int react_add_stat_double(const char *key, double value) {
+	try {
+		if (!react_is_active()) {
+			return 0;
+		}
+
+		react::add_stat(std::string(key), value);
+	} catch (std::exception& e) {
+		std::cerr << e.what() << std::endl;
+		return -EINVAL;
+	}
+	return 0;
+}
+
+int react_add_stat_string(const char *key, const char *value) {
+	try {
+		if (!react_is_active()) {
+			return 0;
+		}
+
+		react::add_stat(std::string(key), value);
+	} catch (std::exception& e) {
+		std::cerr << e.what() << std::endl;
+		return -EINVAL;
+	}
+	return 0;
+}
+
+int react_submit_progress() {
+	try {
+		if (!react_is_active()) {
+			return 0;
+		}
+
+		if (thread_react_context->aggregator) {
+			thread_react_context->aggregator->aggregate(thread_react_context->call_tree.get_call_tree());
+		}
+	} catch (std::exception& e) {
+		std::cerr << e.what() << std::endl;
+		return -EINVAL;
+	}
+	return 0;
+}
+
 namespace react {
 
 action_guard::action_guard(int action_code) {
@@ -149,6 +226,14 @@ call_tree_t get_react_context_call_tree(react_context_t *react_context) {
 	}
 
 	return react_context->call_tree.copy_call_tree();
+}
+
+void add_stat(const std::string &key, const char *value) {
+	add_stat_impl(key, react::stat_value_t(std::string(value)));
+}
+
+void add_stat_impl(const std::string &key, const react::stat_value_t &value) {
+	thread_react_context->call_tree.get_call_tree().add_stat(key, value);
 }
 
 } // namespace react
