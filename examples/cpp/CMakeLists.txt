@@ -9,3 +9,6 @@ target_link_libraries(high_level react)
 
 add_executable(aggregators aggregators.cpp)
 target_link_libraries(aggregators react)
+
+add_executable(stats stats.cpp)
+target_link_libraries(stats react)
