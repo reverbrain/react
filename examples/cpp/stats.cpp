@@ -20,7 +20,7 @@
 int action_code = react_define_new_action("ACTION");
 
 int main() {
-	react::recent_trees_aggregator_t aggregator(3);
+	react::recent_trees_aggregator_t aggregator(react::get_actions_set(), 3);
 	react_context_t *context = react_activate(&aggregator);
 
 	react::add_stat("CanPut", true);
