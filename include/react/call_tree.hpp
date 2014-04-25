@@ -331,6 +331,12 @@ public:
 		return boost::get<T>(stats.at(key));
 	}
 
+	std::vector<p_node_t> get_action_code_nodes(int action_code) const {
+		std::vector<p_node_t> result_nodes;
+		get_action_code_nodes(root, action_code, result_nodes);
+		return result_nodes;
+	}
+
 	using Base::to_json;
 
 private:
@@ -390,6 +396,18 @@ private:
 			p_node_t lhs_next_node = it->second;
 			p_node_t rhs_next_node = rhs_tree.add_new_link(rhs_node, action_code);
 			merge_into(lhs_next_node, rhs_next_node, rhs_tree);
+		}
+	}
+
+	void get_action_code_nodes(int current_node, int action_code, std::vector<p_node_t> &result_nodes) const {
+		if (get_node_action_code(current_node) == action_code) {
+			result_nodes.push_back(current_node);
+		}
+
+		for (auto it = nodes[current_node].links.begin(); it != nodes[current_node].links.end(); ++it) {
+			int action_code = it->first;
+			p_node_t next_node = it->second;
+			get_action_code_nodes(next_node, action_code, result_nodes);
 		}
 	}
 
