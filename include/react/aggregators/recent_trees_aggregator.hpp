@@ -22,7 +22,9 @@ namespace react {
 
 class recent_trees_aggregator_t : public aggregator_t {
 public:
-	recent_trees_aggregator_t(size_t recent_list_size): recent_list_size(recent_list_size) {}
+	recent_trees_aggregator_t(const actions_set_t &actions_set,
+							  size_t recent_list_size):
+		aggregator_t(actions_set), recent_list_size(recent_list_size) {}
 	~recent_trees_aggregator_t() {}
 
 	void aggregate(const call_tree_t &call_tree) {

@@ -24,10 +24,13 @@ namespace react {
 
 class aggregator_t {
 public:
-	aggregator_t() {}
+	aggregator_t(const actions_set_t &actions_set): actions_set(actions_set) {}
 	virtual ~aggregator_t() {}
 	virtual void aggregate(const call_tree_t &call_tree) = 0;
 	virtual void to_json(rapidjson::Value &value, rapidjson::Document::AllocatorType &allocator) const = 0;
+
+protected:
+	const actions_set_t &actions_set;
 };
 
 } // namespace react

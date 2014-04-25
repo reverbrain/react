@@ -233,7 +233,8 @@ private:
 
 class unordered_call_tree_aggregator_t : public aggregator_t {
 public:
-	unordered_call_tree_aggregator_t(const actions_set_t &actions_set): unordered_call_tree(actions_set) {}
+	unordered_call_tree_aggregator_t(const actions_set_t &actions_set):
+		aggregator_t(actions_set), unordered_call_tree(actions_set) {}
 	~unordered_call_tree_aggregator_t() {}
 
 	void aggregate(const call_tree_t &call_tree) {

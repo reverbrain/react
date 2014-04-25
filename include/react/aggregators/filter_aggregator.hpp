@@ -32,8 +32,9 @@ struct filter_t {
 
 class filter_aggregator_t : public aggregator_t {
 public:
-	filter_aggregator_t(std::shared_ptr<filter_t> filter, aggregator_t &next_aggregator):
-		filter(filter), next_aggregator(next_aggregator) {}
+	filter_aggregator_t(const actions_set_t &actions_set,
+						std::shared_ptr<filter_t> filter, aggregator_t &next_aggregator):
+		aggregator_t(actions_set), filter(filter), next_aggregator(next_aggregator) {}
 	~filter_aggregator_t() {}
 
 	void aggregate(const call_tree_t &call_tree) {
