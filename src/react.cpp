@@ -124,61 +124,24 @@ int react_stop_action(int action_code) {
 	return 0;
 }
 
-int react_add_stat_bool(const char *key, bool value) {
-	try {
-		if (!react_is_active()) {
-			return 0;
-		}
-
-		react::add_stat(std::string(key), value);
-	} catch (std::exception& e) {
-		std::cerr << e.what() << std::endl;
-		return -EINVAL;
-	}
-	return 0;
+#define DEFINE_STAT_TYPE(name, type)                     \
+int react_add_stat_##name(const char *key, type value) { \
+	try {                                                \
+		if (!react_is_active()) {                        \
+			return 0;                                    \
+		}                                                \
+		react::add_stat(std::string(key), value);        \
+	} catch (std::exception& e) {                        \
+		std::cerr << e.what() << std::endl;              \
+		return -EINVAL;                                  \
+	}                                                    \
+	return 0;                                            \
 }
 
-int react_add_stat_int(const char *key, int value) {
-	try {
-		if (!react_is_active()) {
-			return 0;
-		}
-
-		react::add_stat(std::string(key), value);
-	} catch (std::exception& e) {
-		std::cerr << e.what() << std::endl;
-		return -EINVAL;
-	}
-	return 0;
-}
-
-int react_add_stat_double(const char *key, double value) {
-	try {
-		if (!react_is_active()) {
-			return 0;
-		}
-
-		react::add_stat(std::string(key), value);
-	} catch (std::exception& e) {
-		std::cerr << e.what() << std::endl;
-		return -EINVAL;
-	}
-	return 0;
-}
-
-int react_add_stat_string(const char *key, const char *value) {
-	try {
-		if (!react_is_active()) {
-			return 0;
-		}
-
-		react::add_stat(std::string(key), value);
-	} catch (std::exception& e) {
-		std::cerr << e.what() << std::endl;
-		return -EINVAL;
-	}
-	return 0;
-}
+DEFINE_STAT_TYPE(bool,   bool)
+DEFINE_STAT_TYPE(int,    int)
+DEFINE_STAT_TYPE(double, double)
+DEFINE_STAT_TYPE(string, const char *)
 
 int react_submit_progress() {
 	try {
