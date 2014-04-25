@@ -337,6 +337,12 @@ public:
 		return result_nodes;
 	}
 
+	std::unordered_map<int, std::vector<p_node_t>> get_action_codes_to_nodes_map() const {
+		std::unordered_map< int, std::vector<p_node_t> > result_map;
+		get_action_codes_to_nodes_map(root, result_map);
+		return result_map;
+	}
+
 	using Base::to_json;
 
 private:
@@ -399,15 +405,23 @@ private:
 		}
 	}
 
-	void get_action_code_nodes(int current_node, int action_code, std::vector<p_node_t> &result_nodes) const {
+	void get_action_code_nodes(p_node_t current_node, int action_code, std::vector<p_node_t> &result_nodes) const {
 		if (get_node_action_code(current_node) == action_code) {
 			result_nodes.push_back(current_node);
 		}
 
 		for (auto it = nodes[current_node].links.begin(); it != nodes[current_node].links.end(); ++it) {
-			int action_code = it->first;
 			p_node_t next_node = it->second;
 			get_action_code_nodes(next_node, action_code, result_nodes);
+		}
+	}
+
+	void get_action_codes_to_nodes_map(p_node_t current_node,
+									   std::unordered_map<int, std::vector<p_node_t>> &result_map) const {
+		result_map[get_node_action_code(current_node)].push_back(current_node);
+		for (auto it = nodes[current_node].links.begin(); it != nodes[current_node].links.end(); ++it) {
+			p_node_t next_node = it->second;
+			get_action_codes_to_nodes_map(next_node, result_map);
 		}
 	}
 
