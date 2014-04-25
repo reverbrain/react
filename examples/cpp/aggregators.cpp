@@ -16,13 +16,14 @@
 #include "react/react.hpp"
 #include "react/aggregators/recent_trees_aggregator.hpp"
 #include "react/aggregators/filter_aggregator.hpp"
+#include "react/aggregators/histogram_aggregator.hpp"
 #include "react/utils.hpp"
 
 int action_code = react_define_new_action("ACTION");
 
 void run_recent_trees_aggregator_example() {
 	react_context_t *context = react_activate();
-	react::recent_trees_aggregator_t aggregator(3);
+	react::recent_trees_aggregator_t aggregator(react::get_actions_set(), 3);
 
 	aggregator.aggregate(react::get_react_context_call_tree(context));
 
@@ -61,8 +62,10 @@ struct tag_filter_t : public react::filter_t {
 };
 
 void run_filter_aggregator_example() {
-	react::recent_trees_aggregator_t recent_trees_aggregator(3);
-	react::filter_aggregator_t filter_aggregator(std::make_shared<tag_filter_t> ("important"), recent_trees_aggregator);
+	react::recent_trees_aggregator_t recent_trees_aggregator(react::get_actions_set(), 3);
+	react::filter_aggregator_t filter_aggregator(
+		react::get_actions_set(), std::make_shared<tag_filter_t> ("important"), recent_trees_aggregator
+	);
 
 	{
 		react_context_t *context = react_activate(&filter_aggregator);
@@ -85,8 +88,43 @@ void run_filter_aggregator_example() {
 	print_json(filter_aggregator);
 }
 
+void run_histogram_aggregator_example() {
+	int action_code = react_define_new_action("ACTION");
+
+	std::vector<int> ticks = {1, 2, 4, 8, 16, 32, 64, 128, 256};
+	auto histogram_updater = std::make_shared<react::action_time_histogram_updater_t>(action_code);
+	react::histogram_aggregator_t<react::histogram1D_t> histogram_aggregator(
+		react::get_actions_set(), histogram_updater, ticks
+	);
+
+	{
+		react_context_t *context = react_activate(&histogram_aggregator);
+		react_start_action(action_code);
+		react_stop_action(action_code);
+		react_deactivate(context);
+	}
+
+	{
+		react_context_t *context = react_activate(&histogram_aggregator);
+		react_start_action(action_code);
+		usleep(100);
+		react_stop_action(action_code);
+		react_deactivate(context);
+	}
+
+	{
+		react_context_t *context = react_activate(&histogram_aggregator);
+		react_start_action(action_code);
+		react_stop_action(action_code);
+		react_deactivate(context);
+	}
+
+	print_json(histogram_aggregator);
+}
+
 int main() {
 	run_recent_trees_aggregator_example();
 	run_filter_aggregator_example();
+	run_histogram_aggregator_example();
 	return 0;
 }
