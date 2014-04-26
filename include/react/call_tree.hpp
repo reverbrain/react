@@ -362,8 +362,8 @@ private:
 			stat_value.AddMember("start_time", (int64_t) get_node_start_time(current_node), allocator);
 			stat_value.AddMember("stop_time", (int64_t) get_node_stop_time(current_node), allocator);
 		} else {
-			for (const auto &stat : stats) {
-				boost::apply_visitor(JsonRenderer(stat.first, stat_value, allocator), stat.second);
+			for (auto it = stats.begin(); it != stats.end(); ++it) {
+				boost::apply_visitor(JsonRenderer(it->first, stat_value, allocator), it->second);
 			}
 		}
 

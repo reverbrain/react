@@ -103,8 +103,8 @@ struct action_time_histogram_updater_t : public histogram_updater_t<histogram1D_
 
 	virtual void operator () (HistogramType &histogram, const call_tree_t &call_tree) const {
 		auto action_code_nodes = call_tree.get_action_code_nodes(action_code);
-		for (auto node : action_code_nodes) {
-			int64_t delta = call_tree.get_node_stop_time(node) - call_tree.get_node_start_time(node);
+		for (auto it = action_code_nodes.begin(); it != action_code_nodes.end(); ++it) {
+			int64_t delta = call_tree.get_node_stop_time(*it) - call_tree.get_node_start_time(*it);
 			histogram.update(delta);
 		}
 	}

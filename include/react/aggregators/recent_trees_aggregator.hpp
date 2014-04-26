@@ -36,9 +36,9 @@ public:
 
 	void to_json(rapidjson::Value &value, rapidjson::Document::AllocatorType &allocator) const {
 		rapidjson::Value recent_trees_values(rapidjson::kArrayType);
-		for (const auto &tree : recent_trees) {
+		for (auto it = recent_trees.begin(); it != recent_trees.end(); ++it) {
 			rapidjson::Value tree_value(rapidjson::kObjectType);
-			tree.to_json(tree_value, allocator);
+			it->to_json(tree_value, allocator);
 			recent_trees_values.PushBack(tree_value, allocator);
 		}
 		value.AddMember("recent_trees", recent_trees_values, allocator);

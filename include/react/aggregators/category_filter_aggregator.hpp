@@ -62,10 +62,10 @@ public:
 
 	void to_json(rapidjson::Value &value, rapidjson::Document::AllocatorType &allocator) const {
 		rapidjson::Value category_aggregator_value(rapidjson::kArrayType);
-		for (const auto &aggregator : categories_aggregators) {
-			Category category = aggregator.first;
+		for (auto it = categories_aggregators.begin(); it != categories_aggregators.end(); ++it) {
+			Category category = it->first;
 			rapidjson::Value aggregator_value(rapidjson::kObjectType);
-			aggregator.second->to_json(aggregator_value, allocator);
+			it->second->to_json(aggregator_value, allocator);
 			aggregator_value.AddMember("category", category, allocator);
 			category_aggregator_value.PushBack(aggregator_value, allocator);
 		}
