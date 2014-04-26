@@ -1,3 +1,52 @@
+react (2.0.0) unstable; urgency=low
+
+  * api, examples, tests, benchmarks: react_context removed from public api
+  * aggregators: memory leak with strings pushed into rapidjson fixed
+  * examples: duplicate define_new_action removed
+  * api: actions_set is now static singleton
+  * aggregators: filter aggregator removed
+  * examples: category_filter_aggregator example added
+  * aggregators: category_filter_aggregator added
+  * aggregators: complex_aggregator added
+  * core: function to get call_tree's map<action_code, nodes> added
+  * aggregators: parent_call_tree aggregator added
+  * examples: histogram aggregator example added
+  * examples: stats example fixed
+  * tests: histogram tests added. fix in aggregators constructors
+  * aggregators: histogram aggregator added
+  * aggregators: actions_set is now passed to aggregator in constructor
+  * core: function to get all tree nodes with specified action_code added
+  * api: add_stat functions are now generated using define
+  * tests: basic stats tests added
+  * examples: filter_aggregator example added
+  * aggregators: filter aggregator added. You can filter aggregated trees with explicitly set filter function.
+  * examples: example of using stats added
+  * api, stats: public api for adding stats to tree added
+  * core: stat_values added to call_tree
+  * api, aggregators: Aggregator is passed as void* to react_activate now
+  * api, aggregators: react_activate now takes aggregator as parameter
+  * core: merge_into for merging call_tree into call_tree added
+  * tests, aggregators: unordered_call_tree_aggregator test added
+  * aggregator: unordered_call_tree refactoring
+  * copyrights: Copyrights added to aggregators
+  * aggregators: Aggregators are moved into separate folder, paths changed
+  * docs: code_is_valid method doxygen description added
+  * tests: simple aggregator test added
+  * aggregator: basic aggregation tools added
+  * utils: Function to print rapidjson value moved to utils.hpp
+  * tests: actions_set suite name fixed
+  * benchmark: Simple benchmarks for deep and flat tree added
+  * tests: ctest check during debian and rhel build added
+  * cmake, tests: enable_testing() and add_test() added to cmake
+  * tests: public_api test added
+  * cmake: tests are added to project. build options added.
+  * tests: call_tree_updater test added
+  * tests: call_tree test added
+  * tests: actions_set test added
+  * tests: Boost.Tests base added. CMakeLists.txt for tests added.
+
+ -- Andrey Kashin <kashin.andrej@gmail.com>  Sat, 26 Apr 2014 21:51:56 +0400
+
 react (1.0.3) unstable; urgency=low
 
   * build: fixed lucid build (gcc 4.4)

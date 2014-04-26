@@ -19,7 +19,9 @@
 
 #include <thread>
 
-#include <react/react.hpp>
+#include "react/react.hpp"
+#include "react/utils.hpp"
+#include "react/aggregators/unordered_call_tree_aggregator.hpp"
 
 const int ACTION_READ = react_define_new_action("READ");
 const int ACTION_FIND = react_define_new_action("FIND");
@@ -77,40 +79,22 @@ std::string cache_read() {
 	return data;
 }
 
-template<typename TreeType>
-void print_json(const TreeType &time_stats) {
-	rapidjson::Document doc;
-	doc.SetObject();
-	auto &allocator = doc.GetAllocator();
-
-	time_stats.to_json(doc, allocator);
-
-	rapidjson::StringBuffer buffer;
-	rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buffer);
-	doc.Accept(writer);
-	std::string result = buffer.GetString();
-	std::cout << result << std::endl;
-}
-
 const int ITERATIONS_NUMBER = 1000;
 
 void run_example() {
 	std::cout << "Running cache read " << ITERATIONS_NUMBER << " times" << std::endl;
 
-	react::unordered_call_tree_t total_time_stats(react::get_actions_set());
+	react::unordered_call_tree_aggregator_t aggregator(react::get_actions_set());
 
 	for (int i = 0; i < ITERATIONS_NUMBER; ++i) {
-		react_call_tree_t *call_tree = react_create_call_tree();
-		react_call_tree_updater_t *call_tree_updater = react_create_call_tree_updater(call_tree);
+		react_activate(&aggregator);
 
 		std::string data = cache_read();
 
-		react::merge_call_tree(call_tree, total_time_stats);
-		react_cleanup_call_tree_updater(call_tree_updater);
-		react_cleanup_call_tree(call_tree);
+		react_deactivate();
 	}
 
-	print_json(total_time_stats);
+	print_json(aggregator);
 }
 
 int main() {

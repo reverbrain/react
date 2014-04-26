@@ -16,8 +16,11 @@
 #ifndef REACT_HPP
 #define REACT_HPP
 
+#include <memory>
+
 #include "react/call_tree.hpp"
 #include "react/updater.hpp"
+#include "react/aggregators/aggregator.hpp"
 
 #include "react.h"
 
@@ -31,13 +34,22 @@ public:
 
 	action_guard &operator =(const action_guard &other) = delete;
 
+	void stop();
+
 private:
-	react::action_guard_t m_action_guard;
+	std::unique_ptr<react::action_guard_t> m_action_guard;
 };
 
 const actions_set_t &get_actions_set();
 
-void merge_call_tree(react_call_tree_t* react_call_tree, unordered_call_tree_t &unordered_call_tree);
+void add_stat_impl(const std::string &key, const react::stat_value_t &value);
+
+template<typename T>
+void add_stat(const std::string &key, const T &value) {
+	add_stat_impl(key, react::stat_value_t(value));
+}
+
+void add_stat(const std::string &key, const char *value);
 
 } // namespace react
 

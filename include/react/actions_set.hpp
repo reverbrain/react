@@ -18,6 +18,7 @@
 
 #include <iostream>
 #include <vector>
+#include <stdexcept>
 
 namespace react {
 
@@ -26,6 +27,8 @@ namespace react {
  */
 class actions_set_t {
 public:
+	static const int NO_ACTION = -1;
+
 	/*!
 	 * \brief Initializes empty actions set
 	 */
@@ -37,11 +40,17 @@ public:
 	~actions_set_t() {}
 
 	/*!
-	 * \brief Defines new action
+	 * \brief Defines new action if actions with the same name doesn't exists
 	 * \param action_name new action's name
-	 * \return new action's code
+	 * \return new action's code or action code of already existing action with \a action_name
 	 */
 	int define_new_action(const std::string& action_name) {
+		for (size_t i = 0; i < actions_names.size(); ++i) {
+			if (actions_names[i] == action_name) {
+				return i;
+			}
+		}
+
 		int action_code = actions_names.size();
 		actions_names.push_back(action_name);
 		return action_code;
@@ -53,7 +62,24 @@ public:
 	 * \return action's name
 	 */
 	std::string get_action_name(int action_code) const {
+		if (!code_is_valid(action_code)) {
+			throw std::invalid_argument(
+						"Can't get name: action_code is invalid"
+						);
+		}
 		return actions_names.at(action_code);
+	}
+
+	/*!
+	 * \brief Checks whether \a action_code is registred in actions_set
+	 * \param action_code
+	 * \return True if \a action_code is registred, false otherwise
+	 */
+	bool code_is_valid(int action_code) const {
+		if (action_code == NO_ACTION) {
+			return false;
+		}
+		return action_code < static_cast<int>(actions_names.size());
 	}
 
 private:

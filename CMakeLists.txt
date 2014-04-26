@@ -1,4 +1,4 @@
-cmake_minimum_required (VERSION 2.6 FATAL_ERROR)
+cmake_minimum_required(VERSION 2.6 FATAL_ERROR)
 
 project(react)
 
@@ -15,21 +15,43 @@ add_definitions(-DCONFIG_REACT_VERSION_0=${REACT_VERSION_0})
 add_definitions(-DCONFIG_REACT_VERSION_1=${REACT_VERSION_1})
 add_definitions(-DCONFIG_REACT_VERSION_2=${REACT_VERSION_2})
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x -std=gnu++0x")
+option(ENABLE_TESTING "Enable testing" ON)
+option(ENABLE_EXAMPLES "Enable examples" ON)
+option(ENABLE_BENCHMARKING "Enable benchmarking" OFF)
 
 include_directories("foreign/")
 include_directories("include/")
 
-add_subdirectory(examples)
+add_definitions(-std=c++0x)
 
-file(GLOB_RECURSE HEADERS include/react/*.hpp)
-set(SOURCES
-	src/react.cpp
+if(ENABLE_TESTING)
+	enable_testing()
+	find_package(Boost COMPONENTS unit_test_framework REQUIRED)
+	include_directories(${Boost_INCLUDE_DIRS})
+	add_subdirectory(tests)
+endif()
+
+if(ENABLE_EXAMPLES)
+	add_subdirectory(examples)
+endif()
+
+if(ENABLE_BENCHMARKING)
+	add_subdirectory(benchmarks)
+endif()
+
+# Build react library
+file(GLOB_RECURSE REACT_HEADERS
+	include/react/*.hpp
+	include/react/*.h
+)
+
+file(GLOB_RECURSE REACT_SOURCES
+	src/*.cpp
 )
 
 add_library(react SHARED
-	${HEADERS}
-	${SOURCES}
+	${REACT_HEADERS}
+	${REACT_SOURCES}
 )
 
 set_target_properties(react PROPERTIES
@@ -60,4 +82,3 @@ install(DIRECTORY foreign/
 
 set(INSTALL_INCLUDE_DIR "${CMAKE_INSTALL_PREFIX}/include")
 set(INSTALL_LIBRARY_DIR "${CMAKE_INSTALL_PREFIX}/lib${LIB_SUFFIX}")
-
