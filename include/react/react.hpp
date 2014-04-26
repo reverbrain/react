@@ -51,8 +51,6 @@ void add_stat(const std::string &key, const T &value) {
 
 void add_stat(const std::string &key, const char *value);
 
-call_tree_t get_react_context_call_tree(react_context_t *react_context);
-
 } // namespace react
 
 #endif // REACT_HPP

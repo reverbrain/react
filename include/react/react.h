@@ -35,11 +35,6 @@
 Q_EXTERN_C int react_define_new_action(const char *action_name);
 
 /*!
- * \brief Structure that hold thread local react context
- */
-struct react_context_t;
-
-/*!
  * \brief Checks whether react monitoring is turned on
  * \return Returns 1 if react monitoring is on and 0 otherwise
  */
@@ -48,16 +43,14 @@ Q_EXTERN_C int react_is_active();
 /*!
  * \brief Creates react_context_t and returns pointer to it
  * \param react_aggregator Aggregator that will be used to aggregate react trace
- * \return Pointer to created react_context
  */
-Q_EXTERN_C struct react_context_t *react_activate(void *react_aggregator = NULL);
+Q_EXTERN_C int react_activate(void *react_aggregator = NULL);
 
 /*!
  * \brief Cleanups react_context_t by pointer
- * \param react_context Pointer to react_context for cleanup
  * \return Returns error code
  */
-Q_EXTERN_C int react_deactivate(struct react_context_t *react_context);
+Q_EXTERN_C int react_deactivate();
 
 /*!
  * \brief Starts new action with action code \a action_code in thread_local context

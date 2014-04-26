@@ -22,28 +22,33 @@
 int action_code = react_define_new_action("ACTION");
 
 void run_recent_trees_aggregator_example() {
-	react_context_t *context = react_activate();
 	react::recent_trees_aggregator_t aggregator(react::get_actions_set(), 3);
+	react_activate(&aggregator);
 
-	aggregator.aggregate(react::get_react_context_call_tree(context));
+	react_submit_progress();
 
-	react_start_action(action_code);
-	react_stop_action(action_code);
-	aggregator.aggregate(react::get_react_context_call_tree(context));
+	{
+		react_start_action(action_code);
+		react_stop_action(action_code);
+		react_submit_progress();
+	}
 
-	react_start_action(action_code);
-	react_stop_action(action_code);
-	react_start_action(action_code);
-	react_stop_action(action_code);
-	aggregator.aggregate(react::get_react_context_call_tree(context));
+	{
+		react_start_action(action_code);
+		react_stop_action(action_code);
+		react_start_action(action_code);
+		react_stop_action(action_code);
+		react_submit_progress();
+	}
 
-	react_start_action(action_code);
-	react_stop_action(action_code);
-	aggregator.aggregate(react::get_react_context_call_tree(context));
+	{
+		react_start_action(action_code);
+		react_stop_action(action_code);
+	}
+
+	react_deactivate();
 
 	print_json(aggregator);
-
-	react_deactivate(context);
 }
 
 void run_category_filter_aggregator_example() {
@@ -67,24 +72,24 @@ void run_category_filter_aggregator_example() {
 	);
 
 	{
-		react_context_t *context = react_activate(&category_filter_aggregator);
+		react_activate(&category_filter_aggregator);
 		react_add_stat_string("name", "first_tree");
 		react_add_stat_bool("important", true);
-		react_deactivate(context);
+		react_deactivate();
 	}
 
 	{
-		react_context_t *context = react_activate(&category_filter_aggregator);
+		react_activate(&category_filter_aggregator);
 		react_add_stat_string("name", "second_tree");
 		react_add_stat_bool("important", false);
-		react_deactivate(context);
+		react_deactivate();
 	}
 
 	{
-		react_context_t *context = react_activate(&category_filter_aggregator);
+		react_activate(&category_filter_aggregator);
 		react_add_stat_string("name", "third_tree");
 		react_add_stat_bool("important", true);
-		react_deactivate(context);
+		react_deactivate();
 	}
 
 	print_json(category_filter_aggregator);
@@ -98,25 +103,25 @@ void run_histogram_aggregator_example() {
 	);
 
 	{
-		react_context_t *context = react_activate(&histogram_aggregator);
+		react_activate(&histogram_aggregator);
 		react_start_action(action_code);
 		react_stop_action(action_code);
-		react_deactivate(context);
+		react_deactivate();
 	}
 
 	{
-		react_context_t *context = react_activate(&histogram_aggregator);
+		react_activate(&histogram_aggregator);
 		react_start_action(action_code);
 		usleep(100);
 		react_stop_action(action_code);
-		react_deactivate(context);
+		react_deactivate();
 	}
 
 	{
-		react_context_t *context = react_activate(&histogram_aggregator);
+		react_activate(&histogram_aggregator);
 		react_start_action(action_code);
 		react_stop_action(action_code);
-		react_deactivate(context);
+		react_deactivate();
 	}
 
 	print_json(histogram_aggregator);

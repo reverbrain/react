@@ -10,13 +10,13 @@ int main() {
 	size_t start_time = clock();
 
 	int action_code = react_define_new_action("ACTION");
-	react_context_t *context = react_activate();
+	react_activate();
 	for (size_t i = 0; i < ITERATIONS_NUMBER; ++i) {
 		react_start_action(action_code);
 		x *= x;
 		react_stop_action(action_code);
 	}
-	react_deactivate(context);
+	react_deactivate();
 
 	std::cerr << x << std::endl;
 	size_t stop_time = clock();

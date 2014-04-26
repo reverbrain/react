@@ -18,22 +18,22 @@ BASELINE(ForLoop, Vanilla, 1, SAMPLES_NUMBER)
 BENCHMARK(ForLoop, StartStop, 1, SAMPLES_NUMBER)
 {
 	int action_code = react_define_new_action("ACTION");
-	react_context_t *context = react_activate();
+	react_activate();
 	for(size_t i = 0; i < FOR_ITERATIONS_NUMBER; ++i) {
 		react_start_action(action_code);
 		usleep(USEC_SLEEP_TIME);
 		react_stop_action(action_code);
 	}
-	react_deactivate(context);
+	react_deactivate();
 }
 
 BENCHMARK(ForLoop, Guarded, 1, SAMPLES_NUMBER)
 {
 	int action_code = react_define_new_action("ACTION");
-	react_context_t *context = react_activate();
+	react_activate();
 	for(size_t i = 0; i < FOR_ITERATIONS_NUMBER; ++i) {
 		react::action_guard guard(action_code);
 		usleep(USEC_SLEEP_TIME);
 	}
-	react_deactivate(context);
+	react_deactivate();
 }

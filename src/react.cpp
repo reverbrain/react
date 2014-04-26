@@ -47,51 +47,47 @@ struct react_context_t {
 };
 
 static __thread react_context_t *thread_react_context = NULL;
+static int thread_react_context_refcount = 0;
 
 int react_is_active() {
 	return thread_react_context != NULL;
 }
 
-react_context_t *react_activate(void *react_aggregator) {
+int react_activate(void *react_aggregator) {
 	try {
-		if (react_is_active()) {
-			std::string error_message("Can't activate react: React is already active");
-			throw std::runtime_error(error_message);
+		if (!thread_react_context_refcount) {
+			thread_react_context = new react_context_t(
+						static_cast<react::aggregator_t*>(react_aggregator)
+			);
+			react::add_stat("complete", false);
 		}
-
-		thread_react_context = new react_context_t(
-					static_cast<react::aggregator_t*>(react_aggregator)
-		);
-
-		react::add_stat("complete", false);
-
-		return thread_react_context;
+		++thread_react_context_refcount;
 	} catch (std::exception &e) {
 		std::cerr << e.what() << std::endl;
-		return NULL;
+		return -ENOMEM;
 	}
+	return 0;
 }
 
-int react_deactivate(react_context_t *react_context) {
+int react_deactivate() {
 	try {
-		if (!react_is_active()) {
+		if (thread_react_context_refcount == 0) {
+			// Sanity check
+			assert(!react_is_active());
+
 			std::string error_message("Can't deactivate react: React is not active");
 			throw std::runtime_error(error_message);
 		}
 
-		if (react_context != thread_react_context) {
-			std::string error_message("Can't deactivate react: passed context doesn't match \
-									  thread_local context");
-			throw std::invalid_argument(error_message);
+		if (thread_react_context_refcount == 1) {
+			react::add_stat("complete", true);
+			if (thread_react_context->aggregator) {
+				thread_react_context->aggregator->aggregate(thread_react_context->call_tree.get_call_tree());
+			}
+			delete thread_react_context;
+			thread_react_context = NULL;
 		}
-
-		react::add_stat("complete", true);
-
-		if (thread_react_context->aggregator) {
-			thread_react_context->aggregator->aggregate(thread_react_context->call_tree.get_call_tree());
-		}
-		delete thread_react_context;
-		thread_react_context = NULL;
+		--thread_react_context_refcount;
 	} catch (std::exception &e) {
 		std::cerr << e.what() << std::endl;
 		return -EFAULT;
@@ -183,15 +179,6 @@ void react::action_guard::stop() {
 
 const actions_set_t &get_actions_set() {
 	return actions_set();
-}
-
-call_tree_t get_react_context_call_tree(react_context_t *react_context) {
-	if (!react_context) {
-		std::string error_message("Can't get react context call tree: passed context is null");
-		throw std::invalid_argument(error_message);
-	}
-
-	return react_context->call_tree.copy_call_tree();
 }
 
 void add_stat(const std::string &key, const char *value) {

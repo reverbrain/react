@@ -20,9 +20,9 @@ int main() {
 
 	size_t start_time = clock();
 
-	react_context_t *context = react_activate();
+	react_activate();
 	recurse(0);
-	react_deactivate(context);
+	react_deactivate();
 
 	std::cerr << x << std::endl;
 	size_t stop_time = clock();
