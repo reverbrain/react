@@ -65,7 +65,7 @@ public:
 
 	void to_json(rapidjson::Value &value, rapidjson::Document::AllocatorType &allocator) const {
 		for (size_t i = 0; i < ticks.size(); ++i) {
-			std::string label = "<" + std::to_string(ticks[i]);
+			std::string label = "<" + std::to_string(static_cast<long long>(ticks[i]));
 
 			if (std::is_same<Bucket, bucket_t>::value) {
 				rapidjson::Value bucket_value(buckets[i].get());
