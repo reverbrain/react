@@ -4,7 +4,8 @@ Maintainer: Andrey Kashin <kashin.andrej@gmail.com>
 Build-Depends: 
 	cdbs, 
 	cmake (>= 2.6), 
-	debhelper (>= 7.0.50~)
+	debhelper (>= 7.0.50~),
+	libboost-dev
 Standards-Version: 3.8.0
 Vcs-Git: git://github.com/reverbrain/react.git
 Vcs-Browser: https://github.com/reverbrain/react
