@@ -15,7 +15,6 @@
 
 #include "react/react.hpp"
 #include "react/aggregators/recent_trees_aggregator.hpp"
-#include "react/aggregators/filter_aggregator.hpp"
 #include "react/aggregators/histogram_aggregator.hpp"
 #include "react/aggregators/category_filter_aggregator.hpp"
 #include "react/utils.hpp"
@@ -45,48 +44,6 @@ void run_recent_trees_aggregator_example() {
 	print_json(aggregator);
 
 	react_deactivate(context);
-}
-
-struct tag_filter_t : public react::filter_t {
-	tag_filter_t(const std::string &tag): tag(tag) {}
-	~tag_filter_t() {}
-
-	bool operator () (const react::call_tree_t &call_tree) const {
-		return (call_tree.has_stat("tag") && call_tree.get_stat<std::string>("tag") == tag);
-	}
-
-	std::string description() const {
-		return "Filtering field <tag> with value <" + tag + ">";
-	}
-
-	std::string tag;
-};
-
-void run_filter_aggregator_example() {
-	react::recent_trees_aggregator_t recent_trees_aggregator(react::get_actions_set(), 3);
-	react::filter_aggregator_t filter_aggregator(
-		react::get_actions_set(), std::make_shared<tag_filter_t> ("important"), recent_trees_aggregator
-	);
-
-	{
-		react_context_t *context = react_activate(&filter_aggregator);
-		react_add_stat_string("tag", "important");
-		react_deactivate(context);
-	}
-
-	{
-		react_context_t *context = react_activate(&filter_aggregator);
-		react_add_stat_string("tag", "not so important");
-		react_deactivate(context);
-	}
-
-	{
-		react_context_t *context = react_activate(&filter_aggregator);
-		react_add_stat_string("tag", "important");
-		react_deactivate(context);
-	}
-
-	print_json(filter_aggregator);
 }
 
 void run_category_filter_aggregator_example() {
@@ -169,7 +126,6 @@ void run_histogram_aggregator_example() {
 
 int main() {
 	run_recent_trees_aggregator_example();
-	run_filter_aggregator_example();
 	run_category_filter_aggregator_example();
 	run_histogram_aggregator_example();
 	return 0;
