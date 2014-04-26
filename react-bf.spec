@@ -21,6 +21,10 @@ BuildRequires:	gcc44 gcc44-c++
 %endif
 BuildRequires:	cmake 
 
+%define boost_ver %{nil}
+
+BuildRequires:	boost%{boost_ver}-devel
+
 %description
 React is library for embedding realtime monitoring into C++ applications
 
