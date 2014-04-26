@@ -14,7 +14,7 @@ BOOST_AUTO_TEST_CASE( define_new_action_test )
 
 	for (int i = 0; i < 10; ++i)
 	{
-		int action_code = actions_set.define_new_action("ACTION" + std::to_string(i));
+		int action_code = actions_set.define_new_action("ACTION" + std::to_string(long(i)));
 		BOOST_CHECK_EQUAL( action_code, i );
 	}
 }
@@ -25,13 +25,13 @@ BOOST_AUTO_TEST_CASE( define_new_action_duplicates_test )
 
 	for (int i = 0; i < 10; ++i)
 	{
-		int action_code = actions_set.define_new_action("ACTION" + std::to_string(i));
+		int action_code = actions_set.define_new_action("ACTION" + std::to_string(long(i)));
 		BOOST_CHECK_EQUAL( action_code, i );
 	}
 
 	for (int i = 0; i < 10; ++i)
 	{
-		int action_code = actions_set.define_new_action("ACTION" + std::to_string(i));
+		int action_code = actions_set.define_new_action("ACTION" + std::to_string(long(i)));
 		BOOST_CHECK_EQUAL( action_code, i );
 	}
 }
@@ -42,12 +42,12 @@ BOOST_AUTO_TEST_CASE( get_action_name_test )
 
 	for (int i = 0; i < 10; ++i)
 	{
-		actions_set.define_new_action("ACTION" + std::to_string(i));
+		actions_set.define_new_action("ACTION" + std::to_string(long(i)));
 	}
 
 	for (int i = 0; i < 10; ++i)
 	{
-		BOOST_CHECK_EQUAL( actions_set.get_action_name(i), "ACTION" + std::to_string(i) );
+		BOOST_CHECK_EQUAL( actions_set.get_action_name(i), "ACTION" + std::to_string(long(i)) );
 	}
 }
 
