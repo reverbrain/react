@@ -33,7 +33,7 @@ BOOST_AUTO_TEST_CASE( react_is_active_test )
 
 BOOST_AUTO_TEST_CASE( react_activate_test )
 {
-	react_activate();
+	react_activate(NULL);
 	BOOST_CHECK( react_is_active() );
 	int err = react_deactivate();
 	BOOST_CHECK_EQUAL( err, 0 );
@@ -45,10 +45,10 @@ BOOST_AUTO_TEST_CASE( react_double_activate_test )
 	boost::test_tools::output_test_stream error_output;
 	cerr_redirect guard(error_output.rdbuf());
 
-	react_activate();
+	react_activate(NULL);
 	BOOST_CHECK(react_is_active());
 
-	react_activate();
+	react_activate(NULL);
 	BOOST_CHECK(react_is_active());
 
 	BOOST_CHECK( error_output.is_empty() );
@@ -75,7 +75,7 @@ BOOST_AUTO_TEST_CASE( react_not_active_deactivate_test )
 
 BOOST_AUTO_TEST_CASE( react_start_and_stop_action_test )
 {
-	react_activate();
+	react_activate(NULL);
 
 	int action_code = react_define_new_action("ACTION");
 	int err = react_start_action(action_code);
@@ -88,7 +88,7 @@ BOOST_AUTO_TEST_CASE( react_start_and_stop_action_test )
 
 BOOST_AUTO_TEST_CASE( react_start_and_stop_invalid_action_test )
 {
-	react_activate();
+	react_activate(NULL);
 	boost::test_tools::output_test_stream error_output;
 
 	{
@@ -124,7 +124,7 @@ BOOST_AUTO_TEST_CASE( react_start_and_stop_invalid_action_test )
 
 BOOST_AUTO_TEST_CASE( forgotten_stop_action_test )
 {
-	react_activate();
+	react_activate(NULL);
 	boost::test_tools::output_test_stream error_output;
 	cerr_redirect guard(error_output.rdbuf());
 
@@ -165,7 +165,7 @@ BOOST_AUTO_TEST_CASE( get_actions_set_test )
 
 BOOST_AUTO_TEST_CASE( action_guard_test )
 {
-	react_activate();
+	react_activate(NULL);
 	int action_code = react_define_new_action("ACTION");
 	{
 		react::action_guard guard(action_code);
@@ -181,7 +181,7 @@ BOOST_AUTO_TEST_CASE( react_not_active_action_guard_test )
 
 BOOST_AUTO_TEST_CASE( action_guard_stop_test )
 {
-	react_activate();
+	react_activate(NULL);
 	int action_code = react_define_new_action("ACTION");
 	react::action_guard guard(action_code);
 	guard.stop();

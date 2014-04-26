@@ -16,7 +16,8 @@
 #ifndef REACT_H
 #define REACT_H
 
-#include "stddef.h"
+#include <stddef.h>
+#include <stdbool.h>
 
 #ifndef Q_EXTERN_C
 #  ifdef __cplusplus
@@ -44,7 +45,7 @@ Q_EXTERN_C int react_is_active();
  * \brief Creates react_context_t and returns pointer to it
  * \param react_aggregator Aggregator that will be used to aggregate react trace
  */
-Q_EXTERN_C int react_activate(void *react_aggregator = NULL);
+Q_EXTERN_C int react_activate(void *react_aggregator);
 
 /*!
  * \brief Cleanups react_context_t by pointer

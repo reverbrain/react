@@ -20,7 +20,7 @@ int main() {
 
 	size_t start_time = clock();
 
-	react_activate();
+	react_activate(NULL);
 	recurse(0);
 	react_deactivate();
 

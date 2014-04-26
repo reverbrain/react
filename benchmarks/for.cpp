@@ -10,7 +10,7 @@ int main() {
 	size_t start_time = clock();
 
 	int action_code = react_define_new_action("ACTION");
-	react_activate();
+	react_activate(NULL);
 	for (size_t i = 0; i < ITERATIONS_NUMBER; ++i) {
 		react_start_action(action_code);
 		x *= x;
