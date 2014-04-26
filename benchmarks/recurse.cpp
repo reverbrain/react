@@ -3,7 +3,6 @@
 #include "react/react.h"
 
 size_t MAX_DEPTH = 1000000;
-size_t x = 2;
 int action_code = react_define_new_action("ACTION");
 
 void recurse(size_t depth) {
@@ -11,7 +10,6 @@ void recurse(size_t depth) {
 		return;
 	}
 	react_start_action(action_code);
-	x *= x;
 	recurse(depth + 1);
 	react_stop_action(action_code);
 }
@@ -24,7 +22,6 @@ int main() {
 	recurse(0);
 	react_deactivate();
 
-	std::cerr << x << std::endl;
 	size_t stop_time = clock();
 
 	double total_time = double(stop_time - start_time) / CLOCKS_PER_SEC * 1000;
