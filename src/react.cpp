@@ -23,11 +23,14 @@
 
 using namespace react;
 
-static actions_set_t *actions_set = new actions_set_t();
+actions_set_t &actions_set() {
+	static actions_set_t actions_set;
+	return actions_set;
+}
 
 int react_define_new_action(const char *action_name) {
 	try {
-		return actions_set->define_new_action(action_name);
+		return actions_set().define_new_action(action_name);
 	} catch (std::exception& e) {
 		std::cerr << e.what() << std::endl;
 		return -ENOMEM;
@@ -36,7 +39,7 @@ int react_define_new_action(const char *action_name) {
 
 struct react_context_t {
 	react_context_t(react::aggregator_t *aggregator):
-		call_tree(*actions_set), updater(call_tree), aggregator(aggregator) {}
+		call_tree(actions_set()), updater(call_tree), aggregator(aggregator) {}
 
 	concurrent_call_tree_t call_tree;
 	call_tree_updater_t updater;
@@ -179,7 +182,7 @@ void react::action_guard::stop() {
 
 
 const actions_set_t &get_actions_set() {
-	return *actions_set;
+	return actions_set();
 }
 
 call_tree_t get_react_context_call_tree(react_context_t *react_context) {
