@@ -17,6 +17,7 @@
 #include "react/aggregators/recent_trees_aggregator.hpp"
 #include "react/aggregators/filter_aggregator.hpp"
 #include "react/aggregators/histogram_aggregator.hpp"
+#include "react/aggregators/category_filter_aggregator.hpp"
 #include "react/utils.hpp"
 
 int action_code = react_define_new_action("ACTION");
@@ -88,6 +89,50 @@ void run_filter_aggregator_example() {
 	print_json(filter_aggregator);
 }
 
+void run_category_filter_aggregator_example() {
+	auto important_trees_aggregator =
+		std::make_shared<react::recent_trees_aggregator_t>(react::get_actions_set(), 3);
+
+	auto unimportant_trees_aggregator =
+		std::make_shared<react::recent_trees_aggregator_t>(react::get_actions_set(), 3);
+
+	react::category_filter_aggregator_t<bool> category_filter_aggregator(
+		react::get_actions_set(),
+		std::make_shared<react::stat_extractor_t<bool>>("important")
+	);
+
+	category_filter_aggregator.add_category_aggregator(
+		false, unimportant_trees_aggregator
+	);
+
+	category_filter_aggregator.add_category_aggregator(
+		true, important_trees_aggregator
+	);
+
+	{
+		react_context_t *context = react_activate(&category_filter_aggregator);
+		react_add_stat_string("name", "first_tree");
+		react_add_stat_bool("important", true);
+		react_deactivate(context);
+	}
+
+	{
+		react_context_t *context = react_activate(&category_filter_aggregator);
+		react_add_stat_string("name", "second_tree");
+		react_add_stat_bool("important", false);
+		react_deactivate(context);
+	}
+
+	{
+		react_context_t *context = react_activate(&category_filter_aggregator);
+		react_add_stat_string("name", "third_tree");
+		react_add_stat_bool("important", true);
+		react_deactivate(context);
+	}
+
+	print_json(category_filter_aggregator);
+}
+
 void run_histogram_aggregator_example() {
 	int action_code = react_define_new_action("ACTION");
 
@@ -125,6 +170,7 @@ void run_histogram_aggregator_example() {
 int main() {
 	run_recent_trees_aggregator_example();
 	run_filter_aggregator_example();
+	run_category_filter_aggregator_example();
 	run_histogram_aggregator_example();
 	return 0;
 }
