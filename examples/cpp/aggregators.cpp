@@ -91,8 +91,6 @@ void run_category_filter_aggregator_example() {
 }
 
 void run_histogram_aggregator_example() {
-	int action_code = react_define_new_action("ACTION");
-
 	std::vector<int> ticks = {1, 2, 4, 8, 16, 32, 64, 128, 256};
 	auto histogram_updater = std::make_shared<react::action_time_histogram_updater_t>(action_code);
 	react::histogram_aggregator_t<react::histogram1D_t> histogram_aggregator(
