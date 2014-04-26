@@ -41,7 +41,7 @@ public:
 			it->to_json(tree_value, allocator);
 			recent_trees_values.PushBack(tree_value, allocator);
 		}
-		value.AddMember("recent_trees", recent_trees_values, allocator);
+		value.AddMember("recent_trees_aggregator", recent_trees_values, allocator);
 	}
 
 private:

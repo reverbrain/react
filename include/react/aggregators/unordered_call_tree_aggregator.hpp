@@ -244,7 +244,7 @@ public:
 	void to_json(rapidjson::Value &value, rapidjson::Document::AllocatorType &allocator) const {
 		rapidjson::Value unordered_call_tree_value(rapidjson::kObjectType);
 		unordered_call_tree.to_json(unordered_call_tree_value, allocator);
-		value.AddMember("unordered_call_tree", unordered_call_tree_value, allocator);
+		value.AddMember("unordered_call_tree_aggregator", unordered_call_tree_value, allocator);
 	}
 
 private:

@@ -69,7 +69,7 @@ public:
 			aggregator_value.AddMember("category", category, allocator);
 			category_aggregator_value.PushBack(aggregator_value, allocator);
 		}
-		value.AddMember("category_aggregator", category_aggregator_value, allocator);
+		value.AddMember("category_filter_aggregator", category_aggregator_value, allocator);
 	}
 
 private:
