@@ -135,8 +135,8 @@ public:
 	void to_json(rapidjson::Value &value, rapidjson::Document::AllocatorType &allocator) const {
 		rapidjson::Value histogram_aggregator_value(rapidjson::kObjectType);
 
-		std::string updater_description = histogram_updater->description(actions_set);
-		histogram_aggregator_value.AddMember("histogram_updater", updater_description.c_str(), allocator);
+		rapidjson::Value description(histogram_updater->description(actions_set).c_str(), allocator);
+		histogram_aggregator_value.AddMember("histogram_updater", description, allocator);
 		rapidjson::Value histogram_value(rapidjson::kObjectType);
 		histogram.to_json(histogram_value, allocator);
 		histogram_aggregator_value.AddMember("histogram", histogram_value, allocator);
