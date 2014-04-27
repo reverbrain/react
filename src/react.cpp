@@ -47,7 +47,7 @@ struct react_context_t {
 };
 
 static __thread react_context_t *thread_react_context = NULL;
-static int thread_react_context_refcount = 0;
+static __thread int thread_react_context_refcount = 0;
 
 int react_is_active() {
 	return thread_react_context != NULL;
