@@ -51,6 +51,8 @@ void add_stat(const std::string &key, const T &value) {
 
 void add_stat(const std::string &key, const char *value);
 
+std::shared_ptr<aggregator_t> create_subthread_aggregator();
+
 } // namespace react
 
 #endif // REACT_HPP

@@ -16,6 +16,7 @@
 #define REACT_CPP
 
 #include "react/react.hpp"
+#include "react/aggregators/parent_call_tree_aggregator.hpp"
 
 #include <stdexcept>
 #include <iostream>
@@ -187,6 +188,17 @@ void add_stat(const std::string &key, const char *value) {
 
 void add_stat_impl(const std::string &key, const react::stat_value_t &value) {
 	thread_react_context->call_tree.get_call_tree().add_stat(key, value);
+}
+
+std::shared_ptr<aggregator_t> create_subthread_aggregator() {
+	if (!react_is_active()) {
+		throw std::runtime_error("Can't create subthread aggregator: React is not active");
+	}
+
+	return std::make_shared<parent_call_tree_aggregator_t>(
+				get_actions_set(), thread_react_context->call_tree,
+				thread_react_context->updater.get_current_node()
+	);
 }
 
 } // namespace react
