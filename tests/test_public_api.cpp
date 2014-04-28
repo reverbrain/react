@@ -1,23 +1,9 @@
 #include "tests.hpp"
 
-#include <boost/test/output_test_stream.hpp>
-
 #include "react/react.hpp"
 #include "react/actions_set.hpp"
 
 BOOST_AUTO_TEST_SUITE( public_api_suite )
-
-struct cerr_redirect {
-	cerr_redirect(std::streambuf *new_buffer):
-		old(std::cerr.rdbuf(new_buffer)) {}
-
-	~cerr_redirect() {
-		std::cerr.rdbuf(old);
-	}
-
-private:
-	std::streambuf *old;
-};
 
 BOOST_AUTO_TEST_CASE( react_define_new_action_test )
 {
