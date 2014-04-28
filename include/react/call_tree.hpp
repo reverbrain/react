@@ -337,8 +337,10 @@ public:
 		return result_nodes;
 	}
 
-	std::unordered_map<int, std::vector<p_node_t>> get_action_codes_to_nodes_map() const {
-		std::unordered_map< int, std::vector<p_node_t> > result_map;
+	typedef std::unordered_map<int, std::vector<p_node_t>> code_to_node_map;
+
+	code_to_node_map get_action_codes_to_nodes_map() const {
+		code_to_node_map result_map;
 		get_action_codes_to_nodes_map(root, result_map);
 		return result_map;
 	}
