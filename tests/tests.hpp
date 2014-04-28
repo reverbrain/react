@@ -1,6 +1,8 @@
 #ifndef TESTS_HPP
 #define TESTS_HPP
 
+#include <iostream>
+
 #include <boost/test/unit_test.hpp>
 #include <boost/test/output_test_stream.hpp>
 
