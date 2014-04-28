@@ -139,11 +139,13 @@ void subthread_worker(std::shared_ptr<react::aggregator_t> aggregator) {
 	react_start_action(subthread_action);
 	react_stop_action(subthread_action);
 
+	react_submit_progress();
+
 	react_deactivate();
 }
 
 void run_subthread_aggregator_example() {
-	react::recent_trees_aggregator_t aggregator(react::get_actions_set(), 1);
+	react::recent_trees_aggregator_t aggregator(react::get_actions_set(), 2);
 
 	react_activate(&aggregator);
 
