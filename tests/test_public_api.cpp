@@ -157,6 +157,81 @@ BOOST_AUTO_TEST_CASE( react_not_active_start_and_stop_test )
 	}
 }
 
+BOOST_AUTO_TEST_CASE( react_add_stat_test_c )
+{
+	react_activate(NULL);
+
+	BOOST_CHECK_EQUAL( react_add_stat_bool("bool", bool()), 0 );
+	BOOST_CHECK_EQUAL( react_add_stat_int("int", int()), 0 );
+	BOOST_CHECK_EQUAL( react_add_stat_double("double", double()), 0 );
+	BOOST_CHECK_EQUAL( react_add_stat_string("string", ""), 0 );
+
+	react_deactivate();
+}
+
+BOOST_AUTO_TEST_CASE( react_not_active_add_stat_test_c )
+{
+	// Forgot to activate react
+	boost::test_tools::output_test_stream error_output;
+
+	{
+		cerr_redirect guard(error_output.rdbuf());
+		BOOST_CHECK_EQUAL( react_add_stat_bool("bool", bool()), 0 );
+		BOOST_CHECK( error_output.is_empty() );
+
+		BOOST_CHECK_EQUAL( react_add_stat_int("int", int()), 0 );
+		BOOST_CHECK( error_output.is_empty() );
+
+		BOOST_CHECK_EQUAL( react_add_stat_double("double", double()), 0 );
+		BOOST_CHECK( error_output.is_empty() );
+
+		BOOST_CHECK_EQUAL( react_add_stat_string("string", ""), 0 );
+		BOOST_CHECK( error_output.is_empty() );
+	}
+}
+
+BOOST_AUTO_TEST_CASE( react_add_stat_test_cpp )
+{
+	react_activate(NULL);
+
+	BOOST_CHECK_NO_THROW( react::add_stat<bool>("bool", bool()) );
+	BOOST_CHECK_NO_THROW ( react::add_stat<int>("int", int()) );
+	BOOST_CHECK_NO_THROW( react::add_stat<double>("double", double()) );
+	BOOST_CHECK_NO_THROW( react::add_stat<std::string>("string", "") );
+
+	react_deactivate();
+}
+
+BOOST_AUTO_TEST_CASE( react_not_active_add_stat_test_cpp )
+{
+	// Forgot to activate react
+	boost::test_tools::output_test_stream error_output;
+
+	{
+		cerr_redirect guard(error_output.rdbuf());
+		BOOST_CHECK_NO_THROW( react::add_stat<bool>("bool", bool()) );
+		BOOST_CHECK( error_output.is_empty() );
+
+		BOOST_CHECK_NO_THROW ( react::add_stat<int>("int", int()) );
+		BOOST_CHECK( error_output.is_empty() );
+
+		BOOST_CHECK_NO_THROW( react::add_stat<double>("double", double()) );
+		BOOST_CHECK( error_output.is_empty() );
+
+		BOOST_CHECK_NO_THROW( react::add_stat<std::string>("string", "") );
+		BOOST_CHECK( error_output.is_empty() );
+	}
+}
+
+BOOST_AUTO_TEST_CASE( react_submit_progress_without_aggregator_test )
+{
+	react_activate(NULL);
+
+	react_submit_progress();
+
+	react_deactivate();
+}
+
 BOOST_AUTO_TEST_CASE( get_actions_set_test )
 {
 	int action_code = react_define_new_action("ACTION");
