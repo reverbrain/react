@@ -6,7 +6,7 @@
 
 Summary:	Distributed hash table storage
 Name:		react
-Version:	2.0.0
+Version:	2.1.0
 Release:	1%{?dist}
 
 License:	GPLv2+
@@ -79,6 +79,26 @@ rm -rf %{buildroot}
 %{_libdir}/libreact.so
 
 %changelog
+* Mon Apr 28 2014 Andrey Kashin <kashin.andrej@gmail.com> - 2.1.0
+- tests: missing include added
+- examples: subthread monitoring example added
+- tests: refactoring
+- tests: tests for react_add_stat(...) added
+- api: NULL pointer object usage fixed
+- api: function to create subthread aggregator added
+- aggregators: call_tree replaced with concurrent_call_tree to avoid races
+- aggregators: iterator dereference fixed
+- api: missed thread_local specifier added
+- benchmarks: code simplifying
+- api, tests, benchmarks: Don't forget to set aggregator!
+- build: more std::to_string fixes for gcc-4.4
+- aggregators: aggregators names in json are consistent now
+- build: missing std::to_string(int) fixed for gcc-4.4
+- gcc: range-based for removed to compile on gcc-4.4
+- build: boost-test-dev added to dependencies
+- Merge remote-tracking branch 'origin/develop'
+- build: libboost-dev added to dependencies
+
 * Sat Apr 26 2014 Andrey Kashin <kashin.andrej@gmail.com> - 2.0.0
 - api, examples, tests, benchmarks: react_context removed from public api
 - aggregators: memory leak with strings pushed into rapidjson fixed
