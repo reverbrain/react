@@ -187,7 +187,9 @@ void add_stat(const std::string &key, const char *value) {
 }
 
 void add_stat_impl(const std::string &key, const react::stat_value_t &value) {
-	thread_react_context->call_tree.get_call_tree().add_stat(key, value);
+	if (thread_react_context) {
+		thread_react_context->call_tree.get_call_tree().add_stat(key, value);
+	}
 }
 
 std::shared_ptr<aggregator_t> create_subthread_aggregator() {
