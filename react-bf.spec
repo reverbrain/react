@@ -6,7 +6,7 @@
 
 Summary:	Distributed hash table storage
 Name:		react
-Version:	2.1.0
+Version:	2.1.1
 Release:	1%{?dist}
 
 License:	GPLv2+
@@ -79,6 +79,9 @@ rm -rf %{buildroot}
 %{_libdir}/libreact.so
 
 %changelog
+* Mon Apr 28 2014 Andrey Kashin <kashin.andrej@gmail.com> - 2.1.1
+- examples: No lambdas :(
+
 * Mon Apr 28 2014 Andrey Kashin <kashin.andrej@gmail.com> - 2.1.0
 - tests: missing include added
 - examples: subthread monitoring example added

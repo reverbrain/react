@@ -1,3 +1,9 @@
+react (2.1.1) unstable; urgency=low
+
+  * examples: No lambdas :(
+
+ -- Andrey Kashin <kashin.andrej@gmail.com>  Mon, 28 Apr 2014 16:35:43 +0400
+
 react (2.1.0) unstable; urgency=low
 
   * tests: missing include added
