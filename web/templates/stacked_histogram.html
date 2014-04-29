@@ -1,0 +1,78 @@
+<h3>{{title}}</h3>
+<div id="{{div_name}}" style="width: 1024px; height: 400px;"></div>
+
+<script type="text/javascript">
+        var chart = AmCharts.makeChart("{{div_name}}", {
+        "type": "serial",
+        "theme": "none",
+        "pathToImages": "http://www.amcharts.com/lib/3/images/",
+        "legend": {
+            "equalWidths": false,
+            "periodValueText": "total: [[value.sum]]",
+            "position": "top",
+            "valueAlign": "left",
+            "valueWidth": 100
+        },
+        "dataProvider": {{data_provider | safe}},
+        "valueAxes": [{
+            "stackType": "none",
+            "gridAlpha": 0.00,
+            "position": "left",
+            "title": "Response time"
+        }],
+        "graphs": [{
+            "balloonText": "<span style='font-size:14px; color:#000000;'><b>[[value]]</b></span>",
+            "fillAlphas": 0.6,
+            "lineAlpha": 0.4,
+            "title": "50%",
+            "valueField": "50%"
+        }, {
+            "balloonText": "<span style='font-size:14px; color:#000000;'><b>[[value]]</b></span>",
+            "fillAlphas": 0.6,
+            "lineAlpha": 0.4,
+            "title": "75%",
+            "valueField": "75%"
+        }, {
+            "balloonText": "<span style='font-size:14px; color:#000000;'><b>[[value]]</b></span>",
+            "fillAlphas": 0.6,
+            "lineAlpha": 0.4,
+            "title": "90%",
+            "valueField": "90%"
+        }, {
+            "balloonText": "<span style='font-size:14px; color:#000000;'><b>[[value]]</b></span>",
+            "fillAlphas": 0.6,
+            "lineAlpha": 0.4,
+            "title": "95%",
+            "valueField": "95%"
+        }, {
+            "balloonText": "<span style='font-size:14px; color:#000000;'><b>[[value]]</b></span>",
+            "fillAlphas": 0.6,
+            "lineAlpha": 0.4,
+            "title": "99%",
+            "valueField": "99%"
+        }],
+        "plotAreaBorderAlpha": 0,
+        "marginTop": 10,
+        "marginLeft": 0,
+        "marginBottom": 0,
+        "chartScrollbar": {},
+        "chartCursor": {
+            "cursorAlpha": 0
+        },
+        "categoryField": "timestamp",
+        "categoryAxis": {
+            "startOnAxis": true,
+            "axisColor": "#DADADA",
+            "gridAlpha": 0.07,
+            "guides": []
+        },
+        "exportConfig": {
+            "menuTop": "10px",
+            "menuRight": "10px",
+            "menuItems": [{
+                "icon": '/lib/3/images/export.png',
+                "format": 'png'
+            }]
+        }
+    });
+</script>

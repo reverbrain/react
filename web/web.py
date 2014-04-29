@@ -16,7 +16,7 @@ import json
 
 def get_trees(html):
     tree_dict = json.loads(html, object_pairs_hook=collections.OrderedDict)
-    return tree_dict['call_tree']['react_aggregator']['category_filter_aggregator']['categories'][0]['complex_aggregator'][0]['recent_trees_aggregator']
+    return tree_dict['call_tree']['react_aggregator']
 
 
 def get_page():
@@ -29,7 +29,7 @@ def get_page():
 
 trees = {}
 actions_times = {}
-actions_times_snapshots = []
+actions_times_snapshots = {}
 
 
 def process_tree(tree, timestamp_actions_times):
@@ -79,9 +79,9 @@ def build_histogram(key, value):
     histogram_json = []
     for (value, bin_edge) in zip(hist, bin_edges):
         histogram_json.append({"time": str(bin_edge), "samples": value})
-    print(histogram_json)
+    # print(histogram_json)
 
-    return render_template("histogram.html", div_name=key, data_provider=json.dumps(histogram_json))
+    return render_template("histogram.html", title=key, div_name="Histogram_" + key, data_provider=json.dumps(histogram_json))
 
 
 def render_histograms():
@@ -90,6 +90,41 @@ def render_histograms():
     for (key, value) in actions_times.iteritems():
         rendered_histograms.append(build_histogram(key, value))
 
+    return rendered_histograms
+
+
+quantiles = [
+    (0.5, '50%'),
+    (0.7, '75%'),
+    (0.9, '90%'),
+    (0.95, '95%'),
+    (0.99, '99%')
+]
+
+
+def build_stacked_histogram(name, snapshots):
+    histogram_json = []
+    for snapshot in snapshots:
+        print(snapshot)
+        measurement = {}
+        measurement['timestamp'] = snapshot['timestamp']
+        size = len(snapshot['actions_times'])
+
+        for quantile in quantiles:
+            pos = int(size * quantile[0] + 0.5)
+            value = snapshot['actions_times'][pos]
+            measurement[quantile[1]] = value
+
+        histogram_json.append(measurement)
+
+    return render_template("stacked_histogram.html", title=name, div_name="Stacked_histogram_" + name, data_provider=json.dumps(histogram_json))
+
+
+def render_stacked_histograms():
+    rendered_histograms = []
+    global actions_times_snapshots
+    for (name, snapshots) in actions_times_snapshots.iteritems():
+        rendered_histograms.append(build_stacked_histogram(name, snapshots))
     return rendered_histograms
 
 import thread
@@ -104,16 +139,21 @@ def update_trees(delay):
                 process_tree(tree, timestamp_actions_times)
 
             global actions_times
+
+            # timestamp = time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime())
+            timestamp = time.strftime("%H:%M:%S", time.gmtime())
             for (key, value) in timestamp_actions_times.iteritems():
                 if not key in actions_times:
                     actions_times[key] = []
                 actions_times[key] += value
-            actions_times_snapshots.append(timestamp_actions_times)
+                if not key in actions_times_snapshots:
+                    actions_times_snapshots[key] = []
+                actions_times_snapshots[key].append({"timestamp": timestamp, "actions_times": sorted(value)})
         except:
             print('Failed to download')
         time.sleep(delay)
 
-thread.start_new_thread(update_trees, (1, ))
+thread.start_new_thread(update_trees, (5, ))
 
 @app.route('/')
 @app.route('/index')
@@ -122,9 +162,12 @@ def index():
 
     histograms_content = render_template("histograms_list.html", histograms=render_histograms())
 
+    stacked_histograms_content = render_template("stacked_histograms_list.html", histograms=render_stacked_histograms())
+
     return render_template("index.html", host=monitored_host,
                            trees_number=len(trees),
                            histograms_content=histograms_content,
+                           stacked_histograms_content=stacked_histograms_content,
                            trees_content=trees_content)
 
 @app.route('/set_host', methods=['POST'])
