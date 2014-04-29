@@ -115,7 +115,7 @@ struct node_t {
  */
 class call_tree_t {
 public:
-	typedef typename node_t::pointer p_node_t;
+	typedef node_t::pointer p_node_t;
 
 	/*!
 	 * \brief Value for representing null pointer
@@ -153,7 +153,7 @@ public:
 	 * \param node Target node
 	 * \return Links from target node
 	 */
-	const typename node_t::Container &get_node_links(p_node_t node) const {
+	const node_t::Container &get_node_links(p_node_t node) const {
 		return nodes[node].links;
 	}
 
