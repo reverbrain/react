@@ -20,7 +20,7 @@
 
 #include "react/call_tree.hpp"
 #include "react/updater.hpp"
-#include "react/aggregators/aggregator.hpp"
+#include "react/aggregator.hpp"
 
 #include "react.h"
 

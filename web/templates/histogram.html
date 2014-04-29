@@ -1,0 +1,41 @@
+<h3>{{title}}</h3>
+<div id="{{div_name}}" style="width: 1024px; height: 400px;"></div>
+
+<script type="text/javascript">
+    var chart = AmCharts.makeChart("{{div_name}}", {
+        "type": "serial",
+        "theme": "none",
+        "dataProvider": {{data_provider | safe}},
+        "valueAxes": [{
+            "gridColor":"#FFFFFF",
+            "gridAlpha": 0.2,
+            "dashLength": 0
+        }],
+        "gridAboveGraphs": true,
+        "startDuration": 1,
+        "graphs": [{
+            "balloonText": "[[time]]: <b>[[value]]</b>",
+            "fillAlphas": 0.8,
+            "lineAlpha": 0.2,
+            "type": "column",
+            "valueField": "samples"
+        }],
+        "chartCursor": {
+            "categoryBalloonEnabled": false,
+            "cursorAlpha": 0,
+            "zoomable": false
+        },
+        "categoryField": "time",
+        "categoryAxis": {
+            "gridPosition": "start",
+            "gridAlpha": 0
+        },
+        "exportConfig":{
+          "menuTop": 0,
+          "menuItems": [{
+          "icon": '/lib/3/images/export.png',
+          "format": 'png'
+          }]
+        }
+    });
+</script>

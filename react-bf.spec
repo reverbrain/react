@@ -6,7 +6,7 @@
 
 Summary:	Distributed hash table storage
 Name:		react
-Version:	2.1.1
+Version:	2.3.0
 Release:	1%{?dist}
 
 License:	GPLv2+
@@ -79,6 +79,24 @@ rm -rf %{buildroot}
 %{_libdir}/libreact.so
 
 %changelog
+* Tue Apr 29 2014 Andrey Kashin <kashin.andrej@gmail.com> - 2.3.0
+- web: amcharts js library sources added
+- web: stacked_histograms added
+- examples: extra newline removed
+- refactoring: code simplification
+- refactoring: aggregators removed, they should be moved outside
+- api: flow of aggregators replaced with subthread_aggregator
+- web: html templates added
+- api: id stat added to call_tree
+- web: histograms and call trees visualisation added
+- web: config.py that stores Flask-WTF settings added
+- web: web interface initial commit
+- examples: batch_histogram_aggregator example added
+- aggregators: batch_histogram_aggregator added
+- aggregators: category_extractor can now convert to json
+- examples: react_progress_submit example added
+- api: Function to create subthread aggregator added. Docs fixed.
+
 * Mon Apr 28 2014 Andrey Kashin <kashin.andrej@gmail.com> - 2.1.1
 - examples: No lambdas :(
 

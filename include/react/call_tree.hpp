@@ -71,9 +71,8 @@ private:
 	rapidjson::Document::AllocatorType &allocator;
 };
 
-template<typename Container>
 struct node_t {
-	typedef Container Contaiter;
+	typedef std::vector<std::pair<int, size_t>> Container;
 
 	/*!
 	 * \brief Pointer to node type
@@ -84,49 +83,12 @@ struct node_t {
 	 * \brief Initializes node with \a action_code and zero consumed time
 	 * \param action_code Action code of the node
 	 */
-	node_t(int action_code): action_code(action_code) {}
+	node_t(int action_code): action_code(action_code), start_time(0), stop_time(0) {}
 
 	/*!
 	 * \brief action which this node represents
 	 */
 	int action_code;
-
-	/*!
-	 * \brief Child nodes, actions that happen inside this action
-	 */
-	Container links;
-};
-
-struct unordered_node_t: public node_t< std::unordered_map<int, size_t> > {
-	typedef node_t< std::unordered_map<int, size_t> > Base;
-	typedef Base::Contaiter Container;
-
-	/*!
-	 * \brief Initializes node with \a action_code and zero calls number
-	 * \param action_code Action code of the node
-	 */
-	unordered_node_t(int action_code): Base(action_code), time(0), calls_number(0) {}
-
-	/*!
-	 * \brief total time consumed in this node
-	 */
-	int64_t time;
-
-	/*!
-	 * \brief number of calls in this node
-	 */
-	int64_t calls_number;
-};
-
-struct ordered_node_t: public node_t< std::vector<std::pair<int, size_t> > > {
-	typedef node_t< std::vector< std::pair<int, size_t> > > Base;
-	typedef Base::Contaiter Container;
-
-	/*!
-	 * \brief Initializes node with \a action_code
-	 * \param action_code Action code of the node
-	 */
-	ordered_node_t(int action_code): Base(action_code), start_time(0), stop_time(0) {}
 
 	/*!
 	 * \brief time when node action was started
@@ -137,6 +99,11 @@ struct ordered_node_t: public node_t< std::vector<std::pair<int, size_t> > > {
 	 * \brief time when node action was stopped
 	 */
 	int64_t stop_time;
+
+	/*!
+	 * \brief Child nodes, actions that happen inside this action
+	 */
+	Container links;
 };
 
 /*!
@@ -146,11 +113,9 @@ struct ordered_node_t: public node_t< std::vector<std::pair<int, size_t> > > {
  * - Action code
  * - Total time consumed during this action
  */
-template<typename NodeType>
-class call_tree_base_t {
+class call_tree_t {
 public:
-	typedef NodeType                   node_t;
-	typedef typename NodeType::pointer p_node_t;
+	typedef typename node_t::pointer p_node_t;
 
 	/*!
 	 * \brief Value for representing null pointer
@@ -158,24 +123,37 @@ public:
 	static const p_node_t NO_NODE = -1;
 
 	/*!
+	 * \brief Root of the call tree
+	 */
+	p_node_t root;
+
+	/*!
 	 * \brief initializes call tree with single root node and action set
 	 * \param actions_set Set of available actions for monitoring in call tree
 	 */
-	call_tree_base_t(const actions_set_t &actions_set): actions_set(actions_set) {
+	call_tree_t(const actions_set_t &actions_set): actions_set(actions_set) {
 		root = new_node(+actions_set_t::NO_ACTION);
 	}
 
 	/*!
 	 * \brief frees memory consumed by call tree
 	 */
-	virtual ~call_tree_base_t() {}
+	~call_tree_t() {}
+
+	/*!
+	 * \brief Returns actions set monitored by this tree
+	 * \return Actions set monitored by this tree
+	 */
+	const actions_set_t& get_actions_set() const {
+		return actions_set;
+	}
 
 	/*!
 	 * \brief Returns links from \a node
 	 * \param node Target node
 	 * \return Links from target node
 	 */
-	const typename NodeType::Container &get_node_links(p_node_t node) const {
+	const typename node_t::Container &get_node_links(p_node_t node) const {
 		return nodes[node].links;
 	}
 
@@ -187,68 +165,6 @@ public:
 	int get_node_action_code(p_node_t node) const {
 		return nodes[node].action_code;
 	}
-
-	/*!
-	 * \brief Returns actions set monitored by this tree
-	 * \return Actions set monitored by this tree
-	 */
-	const actions_set_t& get_actions_set() const {
-		return actions_set;
-	}
-
-	/*!
-	 * \brief Root of the call tree
-	 */
-	p_node_t root;
-
-	/*!
-	 * \brief Converts call tree to json
-	 * \param stat_value Json node for writing
-	 * \param allocator Json allocator
-	 * \return Modified json node
-	 */
-	rapidjson::Value& to_json(rapidjson::Value &stat_value,
-							  rapidjson::Document::AllocatorType &allocator) const {
-		return to_json(root, stat_value, allocator);
-	}
-
-protected:
-	virtual rapidjson::Value& to_json(p_node_t current_node, rapidjson::Value &stat_value,
-							  rapidjson::Document::AllocatorType &allocator) const = 0;
-
-	/*!
-	 * \internal
-	 *
-	 * \brief Allocates space for new node
-	 * \param action_code
-	 * \return Pointer to newly created node
-	 */
-	p_node_t new_node(int action_code) {
-		nodes.emplace_back(action_code);
-		return nodes.size() - 1;
-	}
-
-	/*!
-	 * \brief Tree nodes
-	 */
-	std::vector<node_t> nodes;
-
-	/*!
-	 * \brief Available actions for monitoring
-	 */
-	const actions_set_t &actions_set;
-};
-
-class call_tree_t : public call_tree_base_t<ordered_node_t> {
-	typedef call_tree_base_t<ordered_node_t> Base;
-
-public:
-	call_tree_t(const actions_set_t &actions_set): Base(actions_set) {}
-
-	/*!
-	 * \brief frees memory consumed by call tree
-	 */
-	~call_tree_t() {}
 
 	/*!
 	 * \brief Sets time when action represented by \a node was started
@@ -331,21 +247,16 @@ public:
 		return boost::get<T>(stats.at(key));
 	}
 
-	std::vector<p_node_t> get_action_code_nodes(int action_code) const {
-		std::vector<p_node_t> result_nodes;
-		get_action_code_nodes(root, action_code, result_nodes);
-		return result_nodes;
+	/*!
+	 * \brief Converts call tree to json
+	 * \param stat_value Json node for writing
+	 * \param allocator Json allocator
+	 * \return Modified json node
+	 */
+	rapidjson::Value& to_json(rapidjson::Value &stat_value,
+							  rapidjson::Document::AllocatorType &allocator) const {
+		return to_json(root, stat_value, allocator);
 	}
-
-	typedef std::unordered_map<int, std::vector<p_node_t>> code_to_node_map;
-
-	code_to_node_map get_action_codes_to_nodes_map() const {
-		code_to_node_map result_map;
-		get_action_codes_to_nodes_map(root, result_map);
-		return result_map;
-	}
-
-	using Base::to_json;
 
 private:
 	/*!
@@ -407,26 +318,31 @@ private:
 		}
 	}
 
-	void get_action_code_nodes(p_node_t current_node, int action_code, std::vector<p_node_t> &result_nodes) const {
-		if (get_node_action_code(current_node) == action_code) {
-			result_nodes.push_back(current_node);
-		}
-
-		for (auto it = nodes[current_node].links.begin(); it != nodes[current_node].links.end(); ++it) {
-			p_node_t next_node = it->second;
-			get_action_code_nodes(next_node, action_code, result_nodes);
-		}
+	/*!
+	 * \internal
+	 *
+	 * \brief Allocates space for new node
+	 * \param action_code
+	 * \return Pointer to newly created node
+	 */
+	p_node_t new_node(int action_code) {
+		nodes.emplace_back(action_code);
+		return nodes.size() - 1;
 	}
 
-	void get_action_codes_to_nodes_map(p_node_t current_node,
-									   std::unordered_map<int, std::vector<p_node_t>> &result_map) const {
-		result_map[get_node_action_code(current_node)].push_back(current_node);
-		for (auto it = nodes[current_node].links.begin(); it != nodes[current_node].links.end(); ++it) {
-			p_node_t next_node = it->second;
-			get_action_codes_to_nodes_map(next_node, result_map);
-		}
-	}
+	/*!
+	 * \brief Tree nodes
+	 */
+	std::vector<node_t> nodes;
 
+	/*!
+	 * \brief Available actions for monitoring
+	 */
+	const actions_set_t &actions_set;
+
+	/*!
+	 * \brief Key-Value map for storing arbitary user stats
+	 */
 	std::unordered_map<std::string, stat_value_t> stats;
 };
 

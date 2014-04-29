@@ -1,3 +1,24 @@
+react (2.3.0) unstable; urgency=low
+
+  * web: amcharts js library sources added
+  * web: stacked_histograms added
+  * examples: extra newline removed
+  * refactoring: code simplification
+  * refactoring: aggregators removed, they should be moved outside
+  * api: flow of aggregators replaced with subthread_aggregator
+  * web: html templates added
+  * api: id stat added to call_tree
+  * web: histograms and call trees visualisation added
+  * web: config.py that stores Flask-WTF settings added
+  * web: web interface initial commit
+  * examples: batch_histogram_aggregator example added
+  * aggregators: batch_histogram_aggregator added
+  * aggregators: category_extractor can now convert to json
+  * examples: react_progress_submit example added
+  * api: Function to create subthread aggregator added. Docs fixed.
+
+ -- Andrey Kashin <kashin.andrej@gmail.com>  Tue, 29 Apr 2014 22:23:22 +0400
+
 react (2.1.1) unstable; urgency=low
 
   * examples: No lambdas :(

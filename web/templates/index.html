@@ -1,0 +1,34 @@
+<html>
+  <head>
+    <title>React Dashboard</title>
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+    <!--<script src="{{ url_for('static', filename='amcharts/amcharts.js') }}"></script>-->
+    <script type="text/javascript" src="http://www.amcharts.com/lib/3/amcharts.js"></script>
+    <script type="text/javascript" src="http://www.amcharts.com/lib/3/serial.js"></script>
+    <script type="text/javascript" src="http://www.amcharts.com/lib/3/themes/none.js"></script>
+  </head>
+  <body>
+      <form action="/set_host" method="post">
+          <input type="text" name="host" value={{host}}></input>
+          <input type="submit" value="Set host"></input>
+      </form>
+
+      <h2>Monitored elliptics server: "{{host}}"</h2>
+      <h3>Trees number: {{trees_number}}</h3>
+
+      <script class="javascript">
+          $('.list > li a').click(function() {
+              $(this).parent().find('ul').toggle();
+          });
+      </script>
+
+      <h2>Histograms:</h2>
+      {{histograms_content | safe}}
+
+      <h2>Stacked histograms:</h2>
+      {{stacked_histograms_content | safe}}
+
+      <h2>Trees:</h2>
+      {{trees_content | safe}}
+  </body>
+</html>

@@ -31,11 +31,6 @@ namespace react {
 class call_tree_updater_t {
 public:
 	/*!
-	 * \brief Call tree node type
-	 */
-	typedef call_tree_t::node_t node_t;
-
-	/*!
 	 * \brief Pointer to call tree node type
 	 */
 	typedef call_tree_t::p_node_t p_node_t;
