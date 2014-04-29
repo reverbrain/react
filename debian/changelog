@@ -1,3 +1,9 @@
+react (2.3.1) unstable; urgency=low
+
+  * core: redundant typename removed
+
+ -- Andrey Kashin <kashin.andrej@gmail.com>  Tue, 29 Apr 2014 22:43:12 +0400
+
 react (2.3.0) unstable; urgency=low
 
   * web: amcharts js library sources added

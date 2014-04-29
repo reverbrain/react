@@ -6,7 +6,7 @@
 
 Summary:	Distributed hash table storage
 Name:		react
-Version:	2.3.0
+Version:	2.3.1
 Release:	1%{?dist}
 
 License:	GPLv2+
@@ -79,6 +79,9 @@ rm -rf %{buildroot}
 %{_libdir}/libreact.so
 
 %changelog
+* Tue Apr 29 2014 Andrey Kashin <kashin.andrej@gmail.com> - 2.3.1
+- core: redundant typename removed
+
 * Tue Apr 29 2014 Andrey Kashin <kashin.andrej@gmail.com> - 2.3.0
 - web: amcharts js library sources added
 - web: stacked_histograms added
