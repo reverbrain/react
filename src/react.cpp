@@ -18,6 +18,7 @@
 #include "react/react.hpp"
 #include "react/aggregators/parent_call_tree_aggregator.hpp"
 #include "react/aggregators/category_filter_aggregator.hpp"
+#include "react/utils.hpp"
 
 #include <stdexcept>
 #include <iostream>
@@ -55,6 +56,16 @@ int react_is_active() {
 	return thread_react_context != NULL;
 }
 
+const size_t ID_LENGTH = 64;
+
+std::string generate_random_id() {
+	char id[ID_LENGTH + 1];
+	for(size_t i = 0; i < ID_LENGTH; i++) {
+		sprintf(id + i, "%x", rand() % 16);
+	}
+	return std::string(id);
+}
+
 int react_activate(void *react_aggregator) {
 	try {
 		if (!thread_react_context_refcount) {
@@ -62,6 +73,7 @@ int react_activate(void *react_aggregator) {
 						static_cast<react::aggregator_t*>(react_aggregator)
 			);
 			react::add_stat("complete", false);
+			react::add_stat("id", generate_random_id());
 		}
 		++thread_react_context_refcount;
 	} catch (std::exception &e) {
