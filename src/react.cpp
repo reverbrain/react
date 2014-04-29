@@ -16,8 +16,6 @@
 #define REACT_CPP
 
 #include "react/react.hpp"
-#include "react/aggregators/parent_call_tree_aggregator.hpp"
-#include "react/aggregators/category_filter_aggregator.hpp"
 #include "react/utils.hpp"
 
 #include <stdexcept>
@@ -206,8 +204,7 @@ void add_stat_impl(const std::string &key, const react::stat_value_t &value) {
 
 class subthread_aggregator_t : public aggregator_t {
 public:
-	subthread_aggregator_t(const actions_set_t &actions_set):
-		aggregator_t(actions_set), parent_context(thread_react_context) {
+	subthread_aggregator_t(): parent_context(thread_react_context) {
 		if (parent_context) {
 			parent_node = parent_context->updater.get_current_node();
 		}
@@ -228,9 +225,6 @@ public:
 		}
 	}
 
-	void to_json(rapidjson::Value &value, rapidjson::Document::AllocatorType &allocator) const {
-	}
-
 private:
 	react_context_t *parent_context;
 	call_tree_t::p_node_t parent_node;
@@ -241,7 +235,7 @@ std::shared_ptr<aggregator_t> create_subthread_aggregator() {
 		throw std::runtime_error("Can't create subthread aggregator: React is not active");
 	}
 
-	return std::make_shared<subthread_aggregator_t>(react::get_actions_set());
+	return std::make_shared<subthread_aggregator_t>();
 }
 
 } // namespace react
@@ -252,7 +246,7 @@ void *react_create_subthread_aggregator() {
 			return NULL;
 		}
 
-		return new react::subthread_aggregator_t(react::get_actions_set());
+		return new react::subthread_aggregator_t();
 	} catch (std::exception& e) {
 		std::cerr << e.what() << std::endl;
 		return NULL;

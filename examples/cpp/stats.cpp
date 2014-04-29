@@ -14,13 +14,13 @@
 */
 
 #include "react/react.hpp"
-#include "react/aggregators/recent_trees_aggregator.hpp"
 #include "react/utils.hpp"
+#include "react/aggregator.hpp"
 
 int action_code = react_define_new_action("ACTION");
 
 int main() {
-	react::recent_trees_aggregator_t aggregator(react::get_actions_set(), 3);
+	react::stream_aggregator_t aggregator(std::cout);
 	react_activate(&aggregator);
 
 	react::add_stat("CanPut", true);
@@ -29,6 +29,5 @@ int main() {
 	react::add_stat("Name", "React");
 
 	react_deactivate();
-	print_json(aggregator);
 	return 0;
 }

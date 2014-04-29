@@ -18,19 +18,30 @@
 
 #include <list>
 
-#include "../call_tree.hpp"
+#include "call_tree.hpp"
+#include "utils.hpp"
 
 namespace react {
 
 class aggregator_t {
 public:
-	aggregator_t(const actions_set_t &actions_set): actions_set(actions_set) {}
+	aggregator_t() {}
 	virtual ~aggregator_t() {}
 	virtual void aggregate(const call_tree_t &call_tree) = 0;
-	virtual void to_json(rapidjson::Value &value, rapidjson::Document::AllocatorType &allocator) const = 0;
 
 protected:
-	const actions_set_t &actions_set;
+};
+
+class stream_aggregator_t : public aggregator_t {
+public:
+	stream_aggregator_t(std::ostream &os): os(os) {}
+	~stream_aggregator_t() {}
+	void aggregate(const call_tree_t &call_tree) {
+		os << print_json_to_string(call_tree) << std::endl;
+	}
+
+private:
+	std::ostream &os;
 };
 
 } // namespace react
