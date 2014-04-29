@@ -172,36 +172,6 @@ int react_submit_progress() {
 	return 0;
 }
 
-template<typename T>
-void empty_deleter(T *) {}
-
-void *react_create_subthread_aggregator() {
-	try {
-		if (!react_is_active()) {
-			return NULL;
-		}
-
-		react::aggregator_t *aggregator = new react::category_filter_aggregator_t<bool>(
-			*std::static_pointer_cast<react::category_filter_aggregator_t<bool>>(react::create_subthread_aggregator())
-		);
-
-		return aggregator;
-	} catch (std::exception& e) {
-		std::cerr << e.what() << std::endl;
-		return NULL;
-	}
-}
-
-int react_destroy_subthread_aggregator(void *subthread_aggregator) {
-	try {
-		delete static_cast<aggregator_t*>(subthread_aggregator);
-	} catch (std::exception& e) {
-		std::cerr << e.what() << std::endl;
-		return -EINVAL;
-	}
-	return 0;
-}
-
 namespace react {
 
 action_guard::action_guard(int action_code) {
@@ -234,31 +204,67 @@ void add_stat_impl(const std::string &key, const react::stat_value_t &value) {
 	}
 }
 
+class subthread_aggregator_t : public aggregator_t {
+public:
+	subthread_aggregator_t(const actions_set_t &actions_set):
+		aggregator_t(actions_set), parent_context(thread_react_context) {
+		if (parent_context) {
+			parent_node = parent_context->updater.get_current_node();
+		}
+	}
+	~subthread_aggregator_t() {}
+
+	void aggregate(const call_tree_t &call_tree) {
+		if (!parent_context)
+			return;
+
+		if (call_tree.get_stat<bool>("complete") == false) {
+			parent_context->aggregator->aggregate(call_tree);
+		} else {
+			std::lock_guard<concurrent_call_tree_t> guard(parent_context->call_tree);
+			thread_react_context->call_tree.get_call_tree().merge_into(
+				parent_node, parent_context->call_tree.get_call_tree()
+			);
+		}
+	}
+
+	void to_json(rapidjson::Value &value, rapidjson::Document::AllocatorType &allocator) const {
+	}
+
+private:
+	react_context_t *parent_context;
+	call_tree_t::p_node_t parent_node;
+};
+
 std::shared_ptr<aggregator_t> create_subthread_aggregator() {
 	if (!react_is_active()) {
 		throw std::runtime_error("Can't create subthread aggregator: React is not active");
 	}
 
-	auto category_filter_aggregator = std::make_shared<category_filter_aggregator_t<bool>>(
-		get_actions_set(), std::make_shared<stat_extractor_t<bool>>("complete")
-	);
-
-	auto incomplete_trees_aggregator =
-			std::shared_ptr<aggregator_t> (
-				thread_react_context->aggregator,
-				empty_deleter<aggregator_t>
-			);
-	if (incomplete_trees_aggregator) {
-		category_filter_aggregator->add_category_aggregator(false, incomplete_trees_aggregator);
-	}
-
-	auto complete_trees_aggregator = std::make_shared<parent_call_tree_aggregator_t>(
-				get_actions_set(), thread_react_context->call_tree,
-				thread_react_context->updater.get_current_node()
-	);
-	category_filter_aggregator->add_category_aggregator(true, complete_trees_aggregator);
-
-	return category_filter_aggregator;
+	return std::make_shared<subthread_aggregator_t>(react::get_actions_set());
 }
 
 } // namespace react
+
+void *react_create_subthread_aggregator() {
+	try {
+		if (!react_is_active()) {
+			return NULL;
+		}
+
+		return new react::subthread_aggregator_t(react::get_actions_set());
+	} catch (std::exception& e) {
+		std::cerr << e.what() << std::endl;
+		return NULL;
+	}
+}
+
+int react_destroy_subthread_aggregator(void *subthread_aggregator) {
+	try {
+		delete static_cast<aggregator_t*>(subthread_aggregator);
+	} catch (std::exception& e) {
+		std::cerr << e.what() << std::endl;
+		return -EINVAL;
+	}
+	return 0;
+}
