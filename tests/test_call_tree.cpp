@@ -6,26 +6,9 @@ BOOST_AUTO_TEST_SUITE( call_tree_suite )
 
 using namespace react;
 
-typedef void* dummy_type;
-
 BOOST_AUTO_TEST_CASE( node_constructors_test )
 {
-	node_t<dummy_type> node(42);
-	BOOST_CHECK_EQUAL( node.action_code, 42 );
-}
-
-BOOST_AUTO_TEST_CASE( unordered_node_constructors_test )
-{
-	unordered_node_t node(42);
-	BOOST_CHECK_EQUAL( node.action_code, 42 );
-	BOOST_CHECK_EQUAL( node.calls_number, 0 );
-	BOOST_CHECK_EQUAL( node.time, 0 );
-	BOOST_CHECK( node.links.empty() );
-}
-
-BOOST_AUTO_TEST_CASE( ordered_node_constructors_test )
-{
-	ordered_node_t node(42);
+	node_t node(42);
 	BOOST_CHECK_EQUAL( node.action_code, 42 );
 	BOOST_CHECK_EQUAL( node.start_time, 0 );
 	BOOST_CHECK_EQUAL( node.stop_time, 0 );
