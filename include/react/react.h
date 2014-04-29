@@ -16,7 +16,8 @@
 #ifndef REACT_H
 #define REACT_H
 
-#include "stddef.h"
+#include <stddef.h>
+#include <stdbool.h>
 
 #ifndef Q_EXTERN_C
 #  ifdef __cplusplus
@@ -41,13 +42,14 @@ Q_EXTERN_C int react_define_new_action(const char *action_name);
 Q_EXTERN_C int react_is_active();
 
 /*!
- * \brief Creates react_context_t and returns pointer to it
+ * \brief Creates react thread context for monitoring and sets aggregator as sink
  * \param react_aggregator Aggregator that will be used to aggregate react trace
+ * \return Returns error code
  */
-Q_EXTERN_C int react_activate(void *react_aggregator = NULL);
+Q_EXTERN_C int react_activate(void *react_aggregator);
 
 /*!
- * \brief Cleanups react_context_t by pointer
+ * \brief Sends thread context to aggregator and cleanups context
  * \return Returns error code
  */
 Q_EXTERN_C int react_deactivate();
@@ -78,5 +80,19 @@ Q_EXTERN_C int react_add_stat_string(const char *key, const char *value);
  * \brief Submits current context to aggregator
  */
 Q_EXTERN_C int react_submit_progress();
+
+/*!
+ * \brief Creates aggregator that can be passed to subthread in order to monitor it
+ *          and merge result of monitoring with current thread context
+ * \return Returns pointer to newly created aggregator for subthread
+ */
+Q_EXTERN_C void *react_create_subthread_aggregator();
+
+/*!
+ * \brief Destroys aggregator
+ * \param subthread_aggregator Aggregator that will be destroyed
+ * \return Returns error code
+ */
+Q_EXTERN_C int react_destroy_subthread_aggregator(void *subthread_aggregator);
 
 #endif // REACT_H

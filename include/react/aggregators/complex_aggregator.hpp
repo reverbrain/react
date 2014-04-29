@@ -30,16 +30,16 @@ public:
 	}
 
 	void aggregate(const call_tree_t &call_tree) {
-		for (const auto &aggregator : aggregators) {
-			aggregator->aggregate(call_tree);
+		for (auto it = aggregators.begin(); it != aggregators.end(); ++it) {
+			(*it)->aggregate(call_tree);
 		}
 	}
 
 	void to_json(rapidjson::Value &value, rapidjson::Document::AllocatorType &allocator) const {
 		rapidjson::Value complex_aggregator_value(rapidjson::kArrayType);
-		for (const auto &aggregator : aggregators) {
+		for (auto it = aggregators.begin(); it != aggregators.end(); ++it) {
 			rapidjson::Value aggregator_value(rapidjson::kObjectType);
-			aggregator->to_json(aggregator_value, allocator);
+			(*it)->to_json(aggregator_value, allocator);
 			complex_aggregator_value.PushBack(aggregator_value, allocator);
 		}
 		value.AddMember("complex_aggregator", complex_aggregator_value, allocator);

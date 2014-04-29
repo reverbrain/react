@@ -44,14 +44,14 @@ BASELINE(Recurse, Vanilla, 1, SAMPLES_NUMBER)
 
 BENCHMARK(Recurse, StartStop, 1, SAMPLES_NUMBER)
 {
-	react_activate();
+	react_activate(NULL);
 	recurseStartStop(0);
 	react_deactivate();
 }
 
 BENCHMARK(Recurse, Recurse, 1, SAMPLES_NUMBER)
 {
-	react_activate();
+	react_activate(NULL);
 	recurseGuarded(0);
 	react_deactivate();
 }

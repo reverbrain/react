@@ -65,7 +65,7 @@ public:
 
 	void to_json(rapidjson::Value &value, rapidjson::Document::AllocatorType &allocator) const {
 		for (size_t i = 0; i < ticks.size(); ++i) {
-			std::string label = "<" + std::to_string(ticks[i]);
+			std::string label = "<" + std::to_string(static_cast<long long>(ticks[i]));
 
 			if (std::is_same<Bucket, bucket_t>::value) {
 				rapidjson::Value bucket_value(buckets[i].get());
@@ -91,8 +91,17 @@ struct histogram_updater_t {
 	histogram_updater_t() {}
 	virtual ~histogram_updater_t() {}
 
-	virtual void operator () (HistogramType &histogram, const call_tree_t &call_tree) const = 0;
-	virtual std::string description(const actions_set_t &) const { return ""; }
+	virtual void operator () (HistogramType &histogram, const call_tree_t &call_tree) const {
+		operator()(histogram, call_tree, call_tree.get_action_codes_to_nodes_map());
+	}
+
+	virtual void operator () (HistogramType &histogram, const call_tree_t &call_tree,
+							  const call_tree_t::code_to_node_map &action_codes_to_nodes_map) const = 0;
+
+
+	virtual void to_json(rapidjson::Value &value,
+						 rapidjson::Document::AllocatorType &allocator,
+						 const actions_set_t &) const = 0;
 };
 
 struct action_time_histogram_updater_t : public histogram_updater_t<histogram1D_t> {
@@ -101,16 +110,23 @@ struct action_time_histogram_updater_t : public histogram_updater_t<histogram1D_
 	action_time_histogram_updater_t(int action_code): action_code(action_code) {}
 	~action_time_histogram_updater_t() {}
 
-	virtual void operator () (HistogramType &histogram, const call_tree_t &call_tree) const {
-		auto action_code_nodes = call_tree.get_action_code_nodes(action_code);
-		for (auto node : action_code_nodes) {
-			int64_t delta = call_tree.get_node_stop_time(node) - call_tree.get_node_start_time(node);
-			histogram.update(delta);
+	void operator () (HistogramType &histogram, const call_tree_t &call_tree,
+					  const call_tree_t::code_to_node_map &action_codes_to_nodes_map) const {
+		auto action_code_nodes = action_codes_to_nodes_map.find(action_code);
+		if (action_code_nodes != action_codes_to_nodes_map.end()) {
+			for (auto it = action_code_nodes->second.begin(); it != action_code_nodes->second.end(); ++it) {
+				int64_t delta = call_tree.get_node_stop_time(*it) - call_tree.get_node_start_time(*it);
+				histogram.update(delta);
+			}
 		}
 	}
 
-	std::string description(const actions_set_t &actions_set) const {
-		return "action_time_updater, action_code = " + actions_set.get_action_name(action_code);
+	void to_json(rapidjson::Value &value,
+				 rapidjson::Document::AllocatorType &allocator,
+				 const actions_set_t &actions_set) const {
+		value.AddMember("name", "action_time_updater", allocator);
+		rapidjson::Value action_name_value(actions_set.get_action_name(action_code).c_str(), allocator);
+		value.AddMember("action_name", action_name_value, allocator);
 	}
 
 	int action_code;
@@ -121,32 +137,78 @@ class histogram_aggregator_t : public aggregator_t {
 	typedef histogram_updater_t<HistogramType> HistogramUpdaterType;
 
 public:
-	template<typename ...Measurements>
+	template<typename ...Ticks>
 	histogram_aggregator_t(const actions_set_t &actions_set,
 						   std::shared_ptr<HistogramUpdaterType> histogram_updater,
-						   Measurements ...measurements):
-		aggregator_t(actions_set), histogram(measurements...), histogram_updater(histogram_updater) {}
+						   Ticks ...ticks):
+		aggregator_t(actions_set), histogram(ticks...), histogram_updater(histogram_updater) {}
 	~histogram_aggregator_t() {}
 
 	void aggregate(const call_tree_t &call_tree) {
 		(*histogram_updater)(histogram, call_tree);
 	}
 
+	void aggregate(const call_tree_t &call_tree,
+				   const call_tree_t::code_to_node_map &action_codes_to_nodes_map) {
+		(*histogram_updater)(histogram, call_tree, action_codes_to_nodes_map);
+	}
+
 	void to_json(rapidjson::Value &value, rapidjson::Document::AllocatorType &allocator) const {
 		rapidjson::Value histogram_aggregator_value(rapidjson::kObjectType);
 
-		rapidjson::Value description(histogram_updater->description(actions_set).c_str(), allocator);
-		histogram_aggregator_value.AddMember("histogram_updater", description, allocator);
+		rapidjson::Value histogram_updater_value(rapidjson::kObjectType);
+		histogram_updater->to_json(histogram_updater_value, allocator, actions_set);
+		histogram_aggregator_value.AddMember("histogram_updater", histogram_updater_value, allocator);
+
 		rapidjson::Value histogram_value(rapidjson::kObjectType);
 		histogram.to_json(histogram_value, allocator);
 		histogram_aggregator_value.AddMember("histogram", histogram_value, allocator);
-
 		value.AddMember("histogram_aggregator", histogram_aggregator_value, allocator);
 	}
 
 private:
 	HistogramType histogram;
 	std::shared_ptr<HistogramUpdaterType> histogram_updater;
+};
+
+template<typename HistogramType>
+class batch_histogram_aggregator_t : public aggregator_t {
+	typedef histogram_aggregator_t<HistogramType> HistogramAggregatorType;
+	typedef histogram_updater_t<HistogramType> HistogramUpdaterType;
+
+public:
+	batch_histogram_aggregator_t(const actions_set_t &actions_set): aggregator_t(actions_set) {}
+
+	template<typename ...Ticks>
+	void add_histogram_aggregator(std::shared_ptr<HistogramUpdaterType> histogram_updater,
+								  Ticks ...ticks) {
+		histogram_aggregators.emplace_back(
+			new HistogramAggregatorType(actions_set, histogram_updater, ticks...)
+		);
+	}
+
+	void aggregate(const call_tree_t &call_tree) {
+		for (auto it = histogram_aggregators.begin(); it != histogram_aggregators.end(); ++it) {
+			(*it)->aggregate(call_tree, call_tree.get_action_codes_to_nodes_map());
+		}
+	}
+
+	void to_json(rapidjson::Value &value, rapidjson::Document::AllocatorType &allocator) const {
+		rapidjson::Value batch_histogram_aggregator_value(rapidjson::kObjectType);
+
+		rapidjson::Value histogram_aggregators_values(rapidjson::kArrayType);
+		for (auto it = histogram_aggregators.begin(); it != histogram_aggregators.end(); ++it) {
+			rapidjson::Value histogram_aggregator_value(rapidjson::kObjectType);
+			(*it)->to_json(histogram_aggregator_value, allocator);
+			histogram_aggregators_values.PushBack(histogram_aggregator_value, allocator);
+		}
+		batch_histogram_aggregator_value.AddMember("histogram_aggregators", histogram_aggregators_values, allocator);
+
+		value.AddMember("batch_histogram_aggregator", batch_histogram_aggregator_value, allocator);
+	}
+
+private:
+	std::vector<std::unique_ptr<HistogramAggregatorType>> histogram_aggregators;
 };
 
 } // namespace react

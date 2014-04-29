@@ -337,8 +337,10 @@ public:
 		return result_nodes;
 	}
 
-	std::unordered_map<int, std::vector<p_node_t>> get_action_codes_to_nodes_map() const {
-		std::unordered_map< int, std::vector<p_node_t> > result_map;
+	typedef std::unordered_map<int, std::vector<p_node_t>> code_to_node_map;
+
+	code_to_node_map get_action_codes_to_nodes_map() const {
+		code_to_node_map result_map;
 		get_action_codes_to_nodes_map(root, result_map);
 		return result_map;
 	}
@@ -362,8 +364,8 @@ private:
 			stat_value.AddMember("start_time", (int64_t) get_node_start_time(current_node), allocator);
 			stat_value.AddMember("stop_time", (int64_t) get_node_stop_time(current_node), allocator);
 		} else {
-			for (const auto &stat : stats) {
-				boost::apply_visitor(JsonRenderer(stat.first, stat_value, allocator), stat.second);
+			for (auto it = stats.begin(); it != stats.end(); ++it) {
+				boost::apply_visitor(JsonRenderer(it->first, stat_value, allocator), it->second);
 			}
 		}
 

@@ -18,7 +18,7 @@ BASELINE(ForLoop, Vanilla, 1, SAMPLES_NUMBER)
 BENCHMARK(ForLoop, StartStop, 1, SAMPLES_NUMBER)
 {
 	int action_code = react_define_new_action("ACTION");
-	react_activate();
+	react_activate(NULL);
 	for(size_t i = 0; i < FOR_ITERATIONS_NUMBER; ++i) {
 		react_start_action(action_code);
 		usleep(USEC_SLEEP_TIME);
@@ -30,7 +30,7 @@ BENCHMARK(ForLoop, StartStop, 1, SAMPLES_NUMBER)
 BENCHMARK(ForLoop, Guarded, 1, SAMPLES_NUMBER)
 {
 	int action_code = react_define_new_action("ACTION");
-	react_activate();
+	react_activate(NULL);
 	for(size_t i = 0; i < FOR_ITERATIONS_NUMBER; ++i) {
 		react::action_guard guard(action_code);
 		usleep(USEC_SLEEP_TIME);

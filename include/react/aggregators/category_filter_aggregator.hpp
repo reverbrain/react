@@ -26,6 +26,10 @@ struct category_extractor_t {
 	virtual ~category_extractor_t() {}
 
 	virtual Category operator () (const call_tree_t &call_tree) const = 0;
+
+	virtual void to_json(rapidjson::Value &value,
+						 rapidjson::Document::AllocatorType &allocator,
+						 const actions_set_t &) const = 0;
 };
 
 
@@ -36,6 +40,14 @@ struct stat_extractor_t : public category_extractor_t<Category> {
 
 	Category operator () (const call_tree_t &call_tree) const {
 		return call_tree.get_stat<Category>(stat_name);
+	}
+
+	void to_json(rapidjson::Value &value,
+				 rapidjson::Document::AllocatorType &allocator,
+				 const actions_set_t &) const {
+		value.AddMember("name", "stat_extractor", allocator);
+		rapidjson::Value stat_name_value(stat_name.c_str(), allocator);
+		value.AddMember("stat_name", stat_name_value, allocator);
 	}
 
 	std::string stat_name;
@@ -61,15 +73,22 @@ public:
 	}
 
 	void to_json(rapidjson::Value &value, rapidjson::Document::AllocatorType &allocator) const {
-		rapidjson::Value category_aggregator_value(rapidjson::kArrayType);
-		for (const auto &aggregator : categories_aggregators) {
-			Category category = aggregator.first;
+		rapidjson::Value category_aggregator_value(rapidjson::kObjectType);
+
+		rapidjson::Value categories_values(rapidjson::kArrayType);
+		for (auto it = categories_aggregators.begin(); it != categories_aggregators.end(); ++it) {
+			Category category = it->first;
 			rapidjson::Value aggregator_value(rapidjson::kObjectType);
-			aggregator.second->to_json(aggregator_value, allocator);
+			it->second->to_json(aggregator_value, allocator);
 			aggregator_value.AddMember("category", category, allocator);
-			category_aggregator_value.PushBack(aggregator_value, allocator);
+			categories_values.PushBack(aggregator_value, allocator);
 		}
-		value.AddMember("category_aggregator", category_aggregator_value, allocator);
+		rapidjson::Value category_extractor_value(rapidjson::kObjectType);
+		category_extractor->to_json(category_extractor_value, allocator, actions_set);
+		category_aggregator_value.AddMember("category_extractor", category_extractor_value, allocator);
+		category_aggregator_value.AddMember("categories", categories_values, allocator);
+
+		value.AddMember("category_filter_aggregator", category_aggregator_value, allocator);
 	}
 
 private:

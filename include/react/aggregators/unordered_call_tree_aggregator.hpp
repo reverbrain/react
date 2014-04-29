@@ -219,9 +219,9 @@ private:
 		set_node_time(lhs_node, get_node_time(lhs_node) + time_delta);
 		set_node_calls_number(lhs_node, get_node_calls_number(lhs_node) + 1);
 
-		for (const auto &it : rhs_tree.get_node_links(rhs_node)) {
-			int action_code = it.first;
-			p_node_t rhs_next_node = it.second;
+		for (auto it = rhs_tree.get_node_links(rhs_node).begin(); it != rhs_tree.get_node_links(rhs_node).end(); ++it) {
+			int action_code = it->first;
+			p_node_t rhs_next_node = it->second;
 			if (!node_has_link(lhs_node, action_code)) {
 				add_new_link(lhs_node, action_code);
 			}
@@ -244,7 +244,7 @@ public:
 	void to_json(rapidjson::Value &value, rapidjson::Document::AllocatorType &allocator) const {
 		rapidjson::Value unordered_call_tree_value(rapidjson::kObjectType);
 		unordered_call_tree.to_json(unordered_call_tree_value, allocator);
-		value.AddMember("unordered_call_tree", unordered_call_tree_value, allocator);
+		value.AddMember("unordered_call_tree_aggregator", unordered_call_tree_value, allocator);
 	}
 
 private:

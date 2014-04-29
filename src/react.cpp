@@ -16,6 +16,9 @@
 #define REACT_CPP
 
 #include "react/react.hpp"
+#include "react/aggregators/parent_call_tree_aggregator.hpp"
+#include "react/aggregators/category_filter_aggregator.hpp"
+#include "react/utils.hpp"
 
 #include <stdexcept>
 #include <iostream>
@@ -47,10 +50,20 @@ struct react_context_t {
 };
 
 static __thread react_context_t *thread_react_context = NULL;
-static int thread_react_context_refcount = 0;
+static __thread int thread_react_context_refcount = 0;
 
 int react_is_active() {
 	return thread_react_context != NULL;
+}
+
+const size_t ID_LENGTH = 64;
+
+std::string generate_random_id() {
+	char id[ID_LENGTH + 1];
+	for(size_t i = 0; i < ID_LENGTH; i++) {
+		sprintf(id + i, "%x", rand() % 16);
+	}
+	return std::string(id);
 }
 
 int react_activate(void *react_aggregator) {
@@ -60,6 +73,7 @@ int react_activate(void *react_aggregator) {
 						static_cast<react::aggregator_t*>(react_aggregator)
 			);
 			react::add_stat("complete", false);
+			react::add_stat("id", generate_random_id());
 		}
 		++thread_react_context_refcount;
 	} catch (std::exception &e) {
@@ -158,6 +172,36 @@ int react_submit_progress() {
 	return 0;
 }
 
+template<typename T>
+void empty_deleter(T *) {}
+
+void *react_create_subthread_aggregator() {
+	try {
+		if (!react_is_active()) {
+			return NULL;
+		}
+
+		react::aggregator_t *aggregator = new react::category_filter_aggregator_t<bool>(
+			*std::static_pointer_cast<react::category_filter_aggregator_t<bool>>(react::create_subthread_aggregator())
+		);
+
+		return aggregator;
+	} catch (std::exception& e) {
+		std::cerr << e.what() << std::endl;
+		return NULL;
+	}
+}
+
+int react_destroy_subthread_aggregator(void *subthread_aggregator) {
+	try {
+		delete static_cast<aggregator_t*>(subthread_aggregator);
+	} catch (std::exception& e) {
+		std::cerr << e.what() << std::endl;
+		return -EINVAL;
+	}
+	return 0;
+}
+
 namespace react {
 
 action_guard::action_guard(int action_code) {
@@ -176,7 +220,6 @@ void react::action_guard::stop() {
 	}
 }
 
-
 const actions_set_t &get_actions_set() {
 	return actions_set();
 }
@@ -186,7 +229,36 @@ void add_stat(const std::string &key, const char *value) {
 }
 
 void add_stat_impl(const std::string &key, const react::stat_value_t &value) {
-	thread_react_context->call_tree.get_call_tree().add_stat(key, value);
+	if (thread_react_context) {
+		thread_react_context->call_tree.get_call_tree().add_stat(key, value);
+	}
+}
+
+std::shared_ptr<aggregator_t> create_subthread_aggregator() {
+	if (!react_is_active()) {
+		throw std::runtime_error("Can't create subthread aggregator: React is not active");
+	}
+
+	auto category_filter_aggregator = std::make_shared<category_filter_aggregator_t<bool>>(
+		get_actions_set(), std::make_shared<stat_extractor_t<bool>>("complete")
+	);
+
+	auto incomplete_trees_aggregator =
+			std::shared_ptr<aggregator_t> (
+				thread_react_context->aggregator,
+				empty_deleter<aggregator_t>
+			);
+	if (incomplete_trees_aggregator) {
+		category_filter_aggregator->add_category_aggregator(false, incomplete_trees_aggregator);
+	}
+
+	auto complete_trees_aggregator = std::make_shared<parent_call_tree_aggregator_t>(
+				get_actions_set(), thread_react_context->call_tree,
+				thread_react_context->updater.get_current_node()
+	);
+	category_filter_aggregator->add_category_aggregator(true, complete_trees_aggregator);
+
+	return category_filter_aggregator;
 }
 
 } // namespace react

@@ -129,8 +129,9 @@ public:
 	void start(const int action_code, const time_point_t& start_time) {
 		if (!action_code_is_valid(action_code)) {
 			throw std::invalid_argument(
-						"Can't start action: action code is invalid: " + std::to_string(action_code)
-						);
+						"Can't start action: action code is invalid: "
+						+ std::to_string(static_cast<long long>(action_code))
+			);
 		}
 
 		++trace_depth;
@@ -155,8 +156,9 @@ public:
 	void stop(const int action_code) {
 		if (!action_code_is_valid(action_code)) {
 			throw std::invalid_argument(
-						"Can't stop action: action code is invalid: " + std::to_string(action_code)
-						);
+						"Can't stop action: action code is invalid: "
+						+ std::to_string(static_cast<long long>(action_code))
+			);
 		}
 
 		if (get_trace_depth() > max_trace_depth) {
@@ -280,7 +282,7 @@ private:
 				error_message = "~time_stats_updater(): extra measurements:\n";
 				if (get_actual_trace_depth() != get_trace_depth()) {
 					error_message +=
-							std::to_string(get_trace_depth() - get_actual_trace_depth())
+							std::to_string(static_cast<long long>(get_trace_depth() - get_actual_trace_depth()))
 							+ " untracked actions due to max depth\n";
 				}
 				while (get_actual_trace_depth() > 0) {
@@ -393,7 +395,7 @@ public:
 						+ " is already stopped";
 			} else {
 				error_message = "action "
-						+ std::to_string(action_code)
+						+ std::to_string(static_cast<long long>(action_code))
 						+ " is already stopped";
 			}
 

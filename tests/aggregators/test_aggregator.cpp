@@ -1,6 +1,6 @@
 #include <stdexcept>
 
-#include "tests.hpp"
+#include "../tests.hpp"
 
 #include "react/aggregators/recent_trees_aggregator.hpp"
 #include "react/aggregators/unordered_call_tree_aggregator.hpp"

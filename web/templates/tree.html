@@ -1,0 +1,43 @@
+<h4>id: {{tree_id}}</h4>
+<div id="{{div_name}}" style="width: 1024px; height: 400px;"></div>
+
+<script type="text/javascript">
+    var chart = AmCharts.makeChart("{{div_name}}", {
+        "theme": "none",
+        "type": "serial",
+        "valueAxes": [{
+            "unit": "us",
+            "axisAlpha": 0,
+            "gridAlpha": 0.1
+        }],
+        "dataProvider": {{data_provider | safe}},
+        "startDuration": 1,
+        "graphs": [{
+            "balloonText": "<b>[[category]]</b><br>starts at [[startTime]]us<br>ends at [[endTime]]us",
+            "colorField": "color",
+            "fillAlphas": 0.8,
+            "lineAlpha": 0,
+            "openField": "startTime",
+            "type": "column",
+            "valueField": "endTime"
+        }],
+        "rotate": true,
+        "columnWidth": 1,
+        "categoryField": "name",
+        "categoryAxis": {
+            "gridPosition": "start",
+            "axisAlpha": 0,
+            "gridAlpha": 0.1,
+            "position": "left"
+        },
+        "exportConfig":{
+            "menuTop":"20px",
+            "menuRight":"20px",
+            "menuItems": [{
+                "icon": "http://www.amcharts.com/lib/3/images/export.png",
+                "format": 'png'
+            }]
+        }
+    });
+</script>
+
