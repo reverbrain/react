@@ -105,19 +105,19 @@ quantiles = [
 def build_stacked_histogram(name, snapshots):
     histogram_json = []
     for snapshot in snapshots:
-        print(snapshot)
-        measurement = {}
-        measurement['timestamp'] = snapshot['timestamp']
+        measurement = {'timestamp': snapshot['timestamp']}
         size = len(snapshot['actions_times'])
 
         for quantile in quantiles:
-            pos = int(size * quantile[0] + 0.5)
+            pos = int(size * quantile[0])
             value = snapshot['actions_times'][pos]
             measurement[quantile[1]] = value
 
         histogram_json.append(measurement)
 
-    return render_template("stacked_histogram.html", title=name, div_name="Stacked_histogram_" + name, data_provider=json.dumps(histogram_json))
+    return render_template("stacked_histogram.html", title=name,
+                           div_name="Stacked_histogram_" + name,
+                           data_provider=json.dumps(histogram_json))
 
 
 def render_stacked_histograms():
