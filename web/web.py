@@ -87,6 +87,7 @@ quantiles = [
 def quintiles_measurement(previous_bucket, bucket_actions_times):
     measurement = {'timestamp': previous_bucket * 1000}
     size = len(bucket_actions_times)
+    bucket_actions_times = sorted(bucket_actions_times)
 
     for quantile in quantiles:
         pos = int(size * quantile[0])
