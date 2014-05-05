@@ -110,6 +110,7 @@ def build_stacked_histogram(name, snapshots):
     for snapshot in snapshots:
         measurement = {'timestamp': snapshot['timestamp']}
         size = len(snapshot['actions_times'])
+        measurement['calls'] = size
 
         for quantile in quantiles:
             pos = int(size * quantile[0])
@@ -144,7 +145,8 @@ def update_trees(delay):
             global actions_times
 
             # timestamp = time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime())
-            timestamp = time.strftime("%H:%M:%S", time.gmtime())
+            # timestamp = time.strftime("%H:%M:%S", time.gmtime())
+            timestamp = time.time() * 1000
             for (key, value) in timestamp_actions_times.iteritems():
                 if not key in actions_times:
                     actions_times[key] = []

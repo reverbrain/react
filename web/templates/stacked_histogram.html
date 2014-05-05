@@ -15,41 +15,63 @@
         },
         "dataProvider": {{data_provider | safe}},
         "valueAxes": [{
+            "id":"quintile",
             "stackType": "none",
             "gridAlpha": 0.07,
             "position": "left",
             "title": "Response time"
+        }, {
+            "id":"calls",
+            "axisColor": "#FCD202",
+            "axisThickness": 2,
+            "gridAlpha": 0,
+            "axisAlpha": 1,
+            "position": "right"
         }],
         "graphs": [{
-            "balloonText": "<span style='font-size:14px; color:#000000;'><b>[[value]]</b></span>",
+            "valueAxis": "quintile",
+            "balloonText": "<span style='font-size:14px; color:#000000;'><b>99%: [[value]]</b></span>",
             "fillAlphas": 1.0,
             "lineAlpha": 0.4,
             "title": "99%",
             "valueField": "99%"
         }, {
-            "balloonText": "<span style='font-size:14px; color:#000000;'><b>[[value]]</b></span>",
+            "valueAxis": "quintile",
+            "balloonText": "<span style='font-size:14px; color:#000000;'><b>95%: [[value]]</b></span>",
             "fillAlphas": 1.0,
             "lineAlpha": 0.4,
             "title": "95%",
             "valueField": "95%"
         }, {
-            "balloonText": "<span style='font-size:14px; color:#000000;'><b>[[value]]</b></span>",
+            "valueAxis": "quintile",
+            "balloonText": "<span style='font-size:14px; color:#000000;'><b>90%: [[value]]</b></span>",
             "fillAlphas": 1.0,
             "lineAlpha": 0.4,
             "title": "90%",
             "valueField": "90%"
         }, {
-            "balloonText": "<span style='font-size:14px; color:#000000;'><b>[[value]]</b></span>",
+            "valueAxis": "quintile",
+            "balloonText": "<span style='font-size:14px; color:#000000;'><b>75%: [[value]]</b></span>",
             "fillAlphas": 1.0,
             "lineAlpha": 0.4,
             "title": "75%",
             "valueField": "75%"
         }, {
-            "balloonText": "<span style='font-size:14px; color:#000000;'><b>[[value]]</b></span>",
+            "valueAxis": "quintile",
+            "balloonText": "<span style='font-size:14px; color:#000000;'><b>50%: [[value]]</b></span>",
             "fillAlphas": 1.0,
             "lineAlpha": 0.4,
             "title": "50%",
             "valueField": "50%"
+        }, {
+            "valueAxis": "calls",
+            "balloonText": "<span style='font-size:14px; color:#000000;'><b>Calls: [[value]]</b></span>",
+            "fillAlphas": 0.0,
+            "lineAlpha": 1.0,
+            "lineThickness": 4,
+            "lineColor": "#9400D3",
+            "title": "calls",
+            "valueField": "calls"
         }],
         "plotAreaBorderAlpha": 0,
         "marginTop": 10,
@@ -57,13 +79,16 @@
         "marginBottom": 0,
         "chartScrollbar": {},
         "chartCursor": {
-            "cursorAlpha": 0
+            "categoryBalloonDateFormat": "JJ:NN:SS, DD MMMM",
+            "cursorPosition": "mouse"
         },
         "categoryField": "timestamp",
         "categoryAxis": {
-            "startOnAxis": true,
+            // "startOnAxis": true,
             "axisColor": "#DADADA",
             "gridAlpha": 0.07,
+            "minPeriod": "ss",
+            "parseDates": true,
             "guides": []
         },
         "exportConfig": {
