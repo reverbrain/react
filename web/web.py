@@ -75,27 +75,6 @@ def render_tree(tree):
                            data_provider=json.dumps(actions))
 
 
-def build_histogram(key, value):
-    from numpy import histogram
-    hist, bin_edges = histogram(value)
-
-    histogram_json = []
-    for (value, bin_edge) in zip(hist, bin_edges):
-        histogram_json.append({"time": str(bin_edge), "samples": value})
-    # print(histogram_json)
-
-    return render_template("histogram.html", title=key, div_name="Histogram_" + key, data_provider=json.dumps(histogram_json))
-
-
-def render_histograms():
-    rendered_histograms = []
-    global actions_times
-    for (key, value) in actions_times.iteritems():
-        rendered_histograms.append(build_histogram(key, value))
-
-    return rendered_histograms
-
-
 quantiles = [
     (0.5, '50%'),
     (0.7, '75%'),
@@ -165,13 +144,10 @@ thread.start_new_thread(update_trees, (5, ))
 def index():
     trees_content = render_template("trees_list.html", trees=[render_tree(tree) for tree in actions_trees.values()])
 
-    histograms_content = render_template("histograms_list.html", histograms=render_histograms())
-
     stacked_histograms_content = render_template("stacked_histograms_list.html", histograms=render_stacked_histograms())
 
     return render_template("index.html", host=monitored_host,
                            trees_number=len(trees),
-                           histograms_content=histograms_content,
                            stacked_histograms_content=stacked_histograms_content,
                            trees_content=trees_content)
 
