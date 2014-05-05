@@ -161,7 +161,7 @@ thread.start_new_thread(update_trees, (5, ))
 @app.route('/')
 @app.route('/index')
 def index():
-    trees_content = render_template("trees_list.html", trees=[render_tree(tree) for tree in actions_times.values()])
+    trees_content = render_template("trees_list.html", trees=[render_tree(tree) for tree in actions_trees.values()])
 
     histograms_content = render_template("histograms_list.html", histograms=render_histograms())
 
