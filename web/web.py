@@ -30,6 +30,7 @@ def get_page():
 trees = {}
 actions_times = {}
 actions_times_snapshots = {}
+actions_trees = {}
 
 
 def process_tree(tree, timestamp_actions_times):
@@ -42,6 +43,8 @@ def process_tree(tree, timestamp_actions_times):
 
     actions = []
     delta = tree['actions'][0]['start_time']
+    main_action_name = tree['actions'][0]['name']
+    actions_trees[main_action_name] = tree
     get_actions(tree, actions, delta, True)
     for action in actions:
         action_name = action['name']
@@ -158,7 +161,7 @@ thread.start_new_thread(update_trees, (5, ))
 @app.route('/')
 @app.route('/index')
 def index():
-    trees_content = render_template("trees_list.html", trees=[render_tree(tree) for tree in trees.values()[-10:]])
+    trees_content = render_template("trees_list.html", trees=[render_tree(tree) for tree in actions_times.values()])
 
     histograms_content = render_template("histograms_list.html", histograms=render_histograms())
 
