@@ -28,12 +28,11 @@ def get_page():
         pass
 
 trees = {}
-actions_times = {}
-actions_times_snapshots = {}
-actions_trees = {}
+last_actions_trees = {}
+actions_with_name = {}
 
 
-def process_tree(tree, timestamp_actions_times):
+def process_tree(tree):
     tree_id = tree['id']
     global trees
     if tree_id in trees:
@@ -42,16 +41,17 @@ def process_tree(tree, timestamp_actions_times):
     trees[tree_id] = tree
 
     actions = []
-    delta = tree['actions'][0]['start_time']
     main_action_name = tree['actions'][0]['name']
-    actions_trees[main_action_name] = tree
-    get_actions(tree, actions, delta, True)
+    last_actions_trees[main_action_name] = tree
+    get_actions(tree, actions, 0, True)
     for action in actions:
         action_name = action['name']
-        delta_time = action['endTime'] - action['startTime']
-        if not action_name in timestamp_actions_times:
-            timestamp_actions_times[action_name] = []
-        timestamp_actions_times[action_name].append(delta_time)
+        if not action_name in actions_with_name:
+            actions_with_name[action_name] = []
+        del action['name']
+        del action['color']
+        actions_with_name[action_name].append(action)
+
 
 
 def get_actions(tree, actions, delta, root):
@@ -84,19 +84,35 @@ quantiles = [
 ]
 
 
-def build_stacked_histogram(name, snapshots):
+def quintiles_measurement(previous_bucket, bucket_actions_times):
+    measurement = {'timestamp': previous_bucket * 1000}
+    size = len(bucket_actions_times)
+
+    for quantile in quantiles:
+        pos = int(size * quantile[0])
+        value = bucket_actions_times[pos]
+        measurement[quantile[1]] = value
+
+    measurement['calls'] = size
+    return measurement
+
+
+def build_stacked_histogram(name, actions):
     histogram_json = []
-    for snapshot in snapshots:
-        measurement = {'timestamp': snapshot['timestamp']}
-        size = len(snapshot['actions_times'])
-        measurement['calls'] = size
+    previous_bucket = 0
+    bucket_actions_times = []
+    for action in actions:
+        bucket = action['startTime'] // 1000000
+        if (bucket != previous_bucket):
+            if len(bucket_actions_times) > 0:
+                histogram_json.append(quintiles_measurement(previous_bucket, bucket_actions_times))
+            bucket_actions_times = []
+            previous_bucket = bucket
 
-        for quantile in quantiles:
-            pos = int(size * quantile[0])
-            value = snapshot['actions_times'][pos]
-            measurement[quantile[1]] = value
+        bucket_actions_times.append(action['endTime'] - action['startTime'])
 
-        histogram_json.append(measurement)
+    if len(bucket_actions_times) > 0:
+        histogram_json.append(quintiles_measurement(previous_bucket, bucket_actions_times))
 
     return render_template("stacked_histogram.html", title=name,
                            div_name="Stacked_histogram_" + name,
@@ -105,9 +121,9 @@ def build_stacked_histogram(name, snapshots):
 
 def render_stacked_histograms():
     rendered_histograms = []
-    global actions_times_snapshots
-    for (name, snapshots) in actions_times_snapshots.iteritems():
-        rendered_histograms.append(build_stacked_histogram(name, snapshots))
+    for name in sorted(actions_with_name.keys()):
+        actions_with_name[name] = sorted(actions_with_name[name], key=lambda x: x['startTime'])
+        rendered_histograms.append(build_stacked_histogram(name, actions_with_name[name]))
     return rendered_histograms
 
 import thread
@@ -117,22 +133,8 @@ import time
 def update_trees(delay):
     while True:
         try:
-            timestamp_actions_times = {}
             for tree in get_trees(get_page()):
-                process_tree(tree, timestamp_actions_times)
-
-            global actions_times
-
-            # timestamp = time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime())
-            # timestamp = time.strftime("%H:%M:%S", time.gmtime())
-            timestamp = time.time() * 1000
-            for (key, value) in timestamp_actions_times.iteritems():
-                if not key in actions_times:
-                    actions_times[key] = []
-                actions_times[key] += value
-                if not key in actions_times_snapshots:
-                    actions_times_snapshots[key] = []
-                actions_times_snapshots[key].append({"timestamp": timestamp, "actions_times": sorted(value)})
+                process_tree(tree)
         except:
             print('Failed to download')
         time.sleep(delay)
@@ -142,7 +144,7 @@ thread.start_new_thread(update_trees, (5, ))
 @app.route('/')
 @app.route('/index')
 def index():
-    trees_content = render_template("trees_list.html", trees=[render_tree(tree) for tree in actions_trees.values()])
+    trees_content = render_template("trees_list.html", trees=[render_tree(tree) for tree in last_actions_trees.values()])
 
     stacked_histograms_content = render_template("stacked_histograms_list.html", histograms=render_stacked_histograms())
 
