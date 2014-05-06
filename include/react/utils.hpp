@@ -13,8 +13,8 @@
 * GNU Lesser General Public License for more details.
 */
 
-#ifndef UTILS_HPP
-#define UTILS_HPP
+#ifndef REACT_UTILS_HPP
+#define REACT_UTILS_HPP
 
 namespace react {
 
@@ -39,4 +39,4 @@ void print_json(const T &object) {
 
 } // namespace react
 
-#endif // UTILS_HPP
+#endif // REACT_UTILS_HPP

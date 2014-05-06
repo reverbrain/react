@@ -13,8 +13,8 @@
 * GNU Lesser General Public License for more details.
 */
 
-#ifndef AGGREGATOR_HPP
-#define AGGREGATOR_HPP
+#ifndef REACT_AGGREGATOR_HPP
+#define REACT_AGGREGATOR_HPP
 
 #include <list>
 
@@ -78,4 +78,4 @@ private:
 
 } // namespace react
 
-#endif // AGGREGATOR_HPP
+#endif // REACT_AGGREGATOR_HPP

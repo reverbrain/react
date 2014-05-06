@@ -13,8 +13,8 @@
 * GNU Lesser General Public License for more details.
 */
 
-#ifndef UPDATER_HPP
-#define UPDATER_HPP
+#ifndef REACT_UPDATER_HPP
+#define REACT_UPDATER_HPP
 
 #include <stack>
 #include <stdexcept>
@@ -422,4 +422,4 @@ private:
 
 } // namespace react
 
-#endif // UPDATER_HPP
+#endif // REACT_UPDATER_HPP

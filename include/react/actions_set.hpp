@@ -13,8 +13,8 @@
 * GNU Lesser General Public License for more details.
 */
 
-#ifndef ACTIONS_SET_HPP
-#define ACTIONS_SET_HPP
+#ifndef REACT_ACTIONS_SET_HPP
+#define REACT_ACTIONS_SET_HPP
 
 #include <iostream>
 #include <vector>
@@ -92,4 +92,4 @@ private:
 
 } // namespace react
 
-#endif // ACTIONS_SET_HPP
+#endif // REACT_ACTIONS_SET_HPP

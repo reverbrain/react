@@ -13,8 +13,8 @@
 * GNU Lesser General Public License for more details.
 */
 
-#ifndef call_tree_hpp
-#define call_tree_hpp
+#ifndef REACT_CALL_TREE_HPP
+#define REACT_CALL_TREE_HPP
 
 #include "rapidjson/document.h"
 #include "rapidjson/writer.h"
@@ -415,4 +415,4 @@ private:
 
 } // namespace react
 
-#endif // call_tree_hpp
+#endif // REACT_CALL_TREE_HPP
