@@ -19,6 +19,7 @@
 #include <iostream>
 #include <vector>
 #include <stdexcept>
+#include <algorithm>
 
 namespace react {
 
@@ -27,6 +28,9 @@ namespace react {
  */
 class actions_set_t {
 public:
+	/*!
+	 * \brief Value for representing no action
+	 */
 	static const int NO_ACTION = -1;
 
 	/*!
@@ -40,15 +44,14 @@ public:
 	~actions_set_t() {}
 
 	/*!
-	 * \brief Defines new action if actions with the same name doesn't exists
-	 * \param action_name new action's name
-	 * \return new action's code or action code of already existing action with \a action_name
+	 * \brief Defines new action if action with the same name doesn't exist
+	 * \param action_name New action's name
+	 * \return Newly created action's code or code of already existing action with \a action_name
 	 */
 	int define_new_action(const std::string& action_name) {
-		for (size_t i = 0; i < actions_names.size(); ++i) {
-			if (actions_names[i] == action_name) {
-				return i;
-			}
+		auto it = std::find(actions_names.begin(), actions_names.end(), action_name);
+		if (it != actions_names.end()) {
+			return std::distance(actions_names.begin(), it);
 		}
 
 		int action_code = actions_names.size();
@@ -57,34 +60,32 @@ public:
 	}
 
 	/*!
-	 * \brief Gets action's name by it's \a action_code
-	 * \param action_code
-	 * \return action's name
+	 * \brief Gets action's name by its \a action_code
+	 * \param action_code Action's code
+	 * \return Action's name
 	 */
 	std::string get_action_name(int action_code) const {
 		if (!code_is_valid(action_code)) {
-			throw std::invalid_argument(
-						"Can't get name: action_code is invalid"
-						);
+			throw std::invalid_argument("Can't get name: action_code is invalid");
 		}
 		return actions_names.at(action_code);
 	}
 
 	/*!
 	 * \brief Checks whether \a action_code is registred in actions_set
-	 * \param action_code
+	 * \param action_code Action's code for checking
 	 * \return True if \a action_code is registred, false otherwise
 	 */
 	bool code_is_valid(int action_code) const {
 		if (action_code == NO_ACTION) {
 			return false;
 		}
-		return action_code < static_cast<int>(actions_names.size());
+		return static_cast<size_t>(action_code) < actions_names.size();
 	}
 
 private:
 	/*!
-	 * \brief Map between action's codes and action's names
+	 * \brief Map between actions codes and actions names
 	 */
 	std::vector<std::string> actions_names;
 };
