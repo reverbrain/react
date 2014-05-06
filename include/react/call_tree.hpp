@@ -28,10 +28,12 @@
 #include <mutex>
 
 #include <boost/variant.hpp>
-#include <boost/optional.hpp>
 
 namespace react {
 
+/*!
+ * \brief Types that can be stored in react call tree key-value storage
+ */
 typedef boost::variant<
 	bool,
 	int,
@@ -39,6 +41,9 @@ typedef boost::variant<
 	std::string
 > stat_value_t;
 
+/*!
+ * \brief Helper structure for printing stats stored in stat_value_t to json
+ */
 struct JsonRenderer : boost::static_visitor<>
 {
 	JsonRenderer(const std::string &key, rapidjson::Value &stat_value,
@@ -71,7 +76,13 @@ private:
 	rapidjson::Document::AllocatorType &allocator;
 };
 
+/*!
+ * \brief Represents node of call tree
+ */
 struct node_t {
+	/*!
+	 * \brief Type of container where child nodes are stored
+	 */
 	typedef std::vector<std::pair<int, size_t>> Container;
 
 	/*!
@@ -80,23 +91,23 @@ struct node_t {
 	typedef size_t pointer;
 
 	/*!
-	 * \brief Initializes node with \a action_code and zero consumed time
+	 * \brief Initializes node with \a action_code and zero start and stop times
 	 * \param action_code Action code of the node
 	 */
 	node_t(int action_code): action_code(action_code), start_time(0), stop_time(0) {}
 
 	/*!
-	 * \brief action which this node represents
+	 * \brief Action which this node represents
 	 */
 	int action_code;
 
 	/*!
-	 * \brief time when node action was started
+	 * \brief Time when node action was started
 	 */
 	int64_t start_time;
 
 	/*!
-	 * \brief time when node action was stopped
+	 * \brief Time when node action was stopped
 	 */
 	int64_t stop_time;
 
@@ -111,24 +122,25 @@ struct node_t {
  *
  * Each node of the tree represents information about single action:
  * - Action code
- * - Total time consumed during this action
+ * - Time when action was started
+ * - Time when action was stopped
  */
 class call_tree_t {
 public:
 	typedef node_t::pointer p_node_t;
 
 	/*!
-	 * \brief Value for representing null pointer
+	 * \brief Value for representing null node pointer
 	 */
 	static const p_node_t NO_NODE = -1;
 
 	/*!
-	 * \brief Root of the call tree
+	 * \brief Pointer to the root of call tree
 	 */
 	p_node_t root;
 
 	/*!
-	 * \brief initializes call tree with single root node and action set
+	 * \brief Initializes call tree with single root node and specified actions set
 	 * \param actions_set Set of available actions for monitoring in call tree
 	 */
 	call_tree_t(const actions_set_t &actions_set): actions_set(actions_set) {
@@ -136,7 +148,7 @@ public:
 	}
 
 	/*!
-	 * \brief frees memory consumed by call tree
+	 * \brief Frees memory consumed by call tree
 	 */
 	~call_tree_t() {}
 
@@ -203,30 +215,19 @@ public:
 	}
 
 	/*!
-	 * \brief Adds new child to \a node with \a action_code
-	 * \param node Target node
+	 * \brief Adds new child with \a action_code to \a node
+	 * \param node Target parent node
 	 * \param action_code Child's action code
-	 * \return Pointer to newly created child of \a node with \a action_code
+	 * \return Pointer to newly created child
 	 */
 	p_node_t add_new_link(p_node_t node, int action_code) {
 		if (!actions_set.code_is_valid(action_code)) {
-			throw std::invalid_argument(
-						"Can't add new link: action code is invalid"
-						);
+			throw std::invalid_argument("Can't add new link: action code is invalid");
 		}
 
 		p_node_t action_node = new_node(action_code);
 		nodes[node].links.push_back(std::make_pair(action_code, action_node));
 		return action_node;
-	}
-
-	/*!
-	 * \brief Recursively merges this tree into \a rhs_node
-	 * \param rhs_node Node in which this tree will be merged
-	 * \param rhs_tree Tree in which this tree will be merged
-	 */
-	void merge_into(call_tree_t::p_node_t rhs_node, call_tree_t& rhs_tree) const {
-		merge_into(root, rhs_node, rhs_tree);
 	}
 
 	template<typename T>
@@ -258,6 +259,15 @@ public:
 		return to_json(root, stat_value, allocator);
 	}
 
+	/*!
+	 * \brief Recursively merges this tree into \a rhs_node
+	 * \param rhs_node Node in which this tree will be merged
+	 * \param rhs_tree Tree in which this tree will be merged
+	 */
+	void merge_into(call_tree_t::p_node_t rhs_node, call_tree_t& rhs_tree) const {
+		merge_into(root, rhs_node, rhs_tree);
+	}
+
 private:
 	/*!
 	 * \internal
@@ -272,8 +282,8 @@ private:
 							  rapidjson::Document::AllocatorType &allocator) const {
 		if (current_node != root) {
 			stat_value.AddMember("name", actions_set.get_action_name(get_node_action_code(current_node)).c_str(), allocator);
-			stat_value.AddMember("start_time", (int64_t) get_node_start_time(current_node), allocator);
-			stat_value.AddMember("stop_time", (int64_t) get_node_stop_time(current_node), allocator);
+			stat_value.AddMember("start_time", get_node_start_time(current_node), allocator);
+			stat_value.AddMember("stop_time", get_node_stop_time(current_node), allocator);
 		} else {
 			for (auto it = stats.begin(); it != stats.end(); ++it) {
 				boost::apply_visitor(JsonRenderer(it->first, stat_value, allocator), it->second);
@@ -322,7 +332,7 @@ private:
 	 * \internal
 	 *
 	 * \brief Allocates space for new node
-	 * \param action_code
+	 * \param action_code Action code of new node
 	 * \return Pointer to newly created node
 	 */
 	p_node_t new_node(int action_code) {
