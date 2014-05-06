@@ -23,24 +23,56 @@
 
 namespace react {
 
+/*!
+ * \brief Aggregators base class. Represents call tree collector.
+ */
 class aggregator_t {
 public:
+	/*!
+	 * \brief Constructs empty aggregator
+	 */
 	aggregator_t() {}
-	virtual ~aggregator_t() {}
-	virtual void aggregate(const call_tree_t &call_tree) = 0;
 
-protected:
+	/*!
+	 * \brief Frees memory consumed by aggregator
+	 */
+	virtual ~aggregator_t() {}
+
+	/*!
+	 * \brief Aggregates passed call tree
+	 * \param Call tree for aggregation
+	 */
+	virtual void aggregate(const call_tree_t &call_tree) = 0;
 };
 
+/*!
+ * \brief Aggregator that outputs aggregated trees to stream
+ */
 class stream_aggregator_t : public aggregator_t {
 public:
+	/*!
+	 * \brief Constructs aggregator
+	 * \param os Stream where aggregated trees will be outputed
+	 */
 	stream_aggregator_t(std::ostream &os): os(os) {}
+
+	/*!
+	 * \brief Frees memory consumed by stream_aggregator
+	 */
 	~stream_aggregator_t() {}
+
+	/*!
+	 * \brief Outputs call tree into stream
+	 * \param call_tree Tree that will be outputed
+	 */
 	void aggregate(const call_tree_t &call_tree) {
 		os << print_json_to_string(call_tree) << std::endl;
 	}
 
 private:
+	/*!
+	 * \brief Target stream where aggregated trees will be outputed
+	 */
 	std::ostream &os;
 };
 
