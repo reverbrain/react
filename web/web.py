@@ -30,7 +30,8 @@ def get_page():
 trees = {}
 last_actions_trees = {}
 actions_with_name = {}
-
+min_timestamp = None
+max_timestamp = None
 
 def process_tree(tree):
     tree_id = tree['id']
@@ -50,6 +51,14 @@ def process_tree(tree):
             actions_with_name[action_name] = []
         del action['name']
         del action['color']
+        global min_timestamp
+        global max_timestamp
+        if (min_timestamp == None or min_timestamp > action['startTime']):
+            min_timestamp = action['startTime']
+
+        if (max_timestamp == None or max_timestamp < action['startTime']):
+            max_timestamp = action['startTime']
+
         actions_with_name[action_name].append(action)
 
 
@@ -102,6 +111,9 @@ def build_stacked_histogram(name, actions):
     histogram_json = []
     previous_bucket = 0
     bucket_actions_times = []
+
+    histogram_json.append(quintiles_measurement(min_timestamp // 1000000, [0]))
+
     for action in actions:
         bucket = action['startTime'] // 1000000
         if (bucket != previous_bucket):
@@ -114,6 +126,8 @@ def build_stacked_histogram(name, actions):
 
     if len(bucket_actions_times) > 0:
         histogram_json.append(quintiles_measurement(previous_bucket, bucket_actions_times))
+
+    histogram_json.append(quintiles_measurement(max_timestamp // 1000000, [0]))
 
     return render_template("stacked_histogram.html", title=name,
                            div_name="Stacked_histogram_" + name,
