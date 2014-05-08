@@ -1,4 +1,5 @@
 Source: react
+Section: utils
 Priority: optional
 Maintainer: Andrey Kashin <kashin.andrej@gmail.com>
 Build-Depends: 
