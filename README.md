@@ -1,4 +1,4 @@
-# React
+# React [![Build Status](https://travis-ci.org/reverbrain/react.png?branch=master)](https://travis-ci.org/reverbrain/react)
 #### Realtime call tree for C++
 
 React is a library for measuring time consumption of different parts of your program. 
