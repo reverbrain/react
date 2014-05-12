@@ -18,6 +18,7 @@
 #endif
 
 #include <thread>
+#include <chrono>
 
 #include "react/react.hpp"
 #include "react/utils.hpp"
