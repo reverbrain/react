@@ -218,6 +218,17 @@ BOOST_AUTO_TEST_CASE( react_submit_progress_without_aggregator_test )
 	react_deactivate();
 }
 
+BOOST_AUTO_TEST_CASE( react_create_subthread_aggregator_test )
+{
+	react_activate(NULL);
+
+	void *aggregator = react_create_subthread_aggregator();
+	BOOST_CHECK( aggregator != NULL );
+	react_destroy_subthread_aggregator(aggregator);
+
+	react_deactivate();
+}
+
 BOOST_AUTO_TEST_CASE( get_actions_set_test )
 {
 	int action_code = react_define_new_action("ACTION");
