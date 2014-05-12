@@ -17,6 +17,10 @@
 #define _GLIBCXX_USE_NANOSLEEP
 #endif
 
+#ifndef _GLIBCXX_USE_CLOCK_REALTIME
+#define _GLIBCXX_USE_CLOCK_REALTIME
+#endif
+
 #include <thread>
 #include <chrono>
 

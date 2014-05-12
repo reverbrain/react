@@ -9,8 +9,6 @@ before_install:
 
 install:
   - sudo apt-get install -qq cmake libboost-dev libboost-test-dev
-  # clang settings
-  - if [ "$CXX" == "clang++" ]; then export CXXFLAGS="-std=gnu++11 -stdlib=libc++"; fi
 
 before_script:
   - mkdir build && cd build
