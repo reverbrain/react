@@ -43,7 +43,7 @@ Q_EXTERN_C int react_is_active();
 
 /*!
  * \brief Creates react thread context for monitoring and sets aggregator as sink
- * \param react_aggregator Aggregator that will be used to aggregate react trace
+ * \param react_aggregator Aggregator that will be used to collect react trace
  * \return Returns error code
  */
 Q_EXTERN_C int react_activate(void *react_aggregator);
@@ -62,7 +62,7 @@ Q_EXTERN_C int react_deactivate();
 Q_EXTERN_C int react_start_action(int action_code);
 
 /*!
- * \brief Starts last in thread_local context, checks whether it's code is \a action_code
+ * \brief Stops last action in thread_local context, checks whether it's code is \a action_code
  * \param action_code Code of action which will be stopped
  * \return Returns error code
  */
