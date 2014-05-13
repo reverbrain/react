@@ -83,6 +83,7 @@ Scripts for building **deb** and **rpm** packages are included into sources.
 
 ### Compilers
 * **GCC 4.4+**
+* **Clang 3.4+**
 
 ### Dependencies
 * Boost
