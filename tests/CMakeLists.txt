@@ -23,4 +23,5 @@ set_target_properties(react-tests PROPERTIES
 	LINKER_LANGUAGE CXX
 )
 
+add_custom_target(check COMMAND ${CMAKE_CTEST_COMMAND} --verbose)
 add_test(react-tests react-tests --log_level=test_suite)
