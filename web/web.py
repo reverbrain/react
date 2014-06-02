@@ -2,6 +2,7 @@ from flask import Flask
 from flask import render_template
 from flask import request, redirect
 from random import randint
+import sys
 
 app = Flask(__name__)
 
@@ -19,6 +20,10 @@ def get_trees(html):
     return tree_dict['call_tree']['react_aggregator']
 
 
+def get_from_file(path):
+    return open(path, 'r').read()
+
+
 def get_page():
     try:
         response = urllib2.urlopen('http://{}/{}'.format(monitored_host, 'call_tree'))
@@ -26,6 +31,20 @@ def get_page():
         return html
     except urllib2.URLError:
         pass
+
+trees_loader = None
+
+from functools import partial
+
+loader = sys.argv[1]
+if (loader == 'remote'):
+    trees_loader = get_page
+    monitored_host = sys.argv[2]
+elif (loader == 'file'):
+    trees_loader = partial(get_from_file, sys.argv[2])
+else:
+    print("Unknown argument 1")
+    sys.exit(1)
 
 trees = {}
 last_actions_trees = {}
@@ -80,8 +99,13 @@ def render_tree(tree):
     delta = tree['actions'][0]['start_time']
     get_actions(tree, actions, delta, True)
 
+    if 'mapped_size' in tree:
+        mapped_size = tree['mapped_size']
+    else:
+        mapped_size = 0
+
     return render_template("tree.html", tree_id=tree['id'], div_name='tree' + tree['id'],
-                           data_provider=json.dumps(actions))
+                           data_provider=json.dumps(actions), tree_size=mapped_size)
 
 
 quantiles = [
@@ -148,7 +172,7 @@ import time
 def update_trees(delay):
     while True:
         try:
-            for tree in get_trees(get_page()):
+            for tree in get_trees(trees_loader()):
                 process_tree(tree)
         except:
             print('Failed to download')
