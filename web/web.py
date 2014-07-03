@@ -9,6 +9,42 @@ app = Flask(__name__)
 app.config.from_object('config')
 
 monitored_host = 'localhost:20000'
+monitored_file = 'react.json'
+monitoring_message = ""
+
+trees = {}
+last_actions_trees = {}
+actions_with_name = {}
+min_timestamp = None
+max_timestamp = None
+
+def change_datasource():
+    global trees
+    global last_actions_trees
+    global actions_with_name
+    global min_timestamp
+    global max_timestamp
+
+    trees = {}
+    last_actions_trees = {}
+    actions_with_name = {}
+    min_timestamp = None
+    max_timestamp = None
+
+def set_monitored_host(host):
+    change_datasource()
+    global monitored_host
+    global monitoring_message
+    monitored_host = host
+    monitoring_message = "Monitored elliptics server: " + monitored_host
+
+
+def set_monitored_file(filename):
+    change_datasource()
+    global monitored_file
+    global monitoring_message
+    monitored_file = filename
+    monitoring_message = "Loading json from file: " + monitored_file
 
 import urllib2
 import collections
@@ -17,11 +53,14 @@ import json
 
 def get_trees(html):
     tree_dict = json.loads(html, object_pairs_hook=collections.OrderedDict)
-    return tree_dict['call_tree']['react_aggregator']
+    if 'call_tree' in tree_dict:
+        return tree_dict['call_tree']['react_aggregator']
+    else:
+        return [tree_dict]
 
 
-def get_from_file(path):
-    return open(path, 'r').read()
+def get_from_file():
+    return open(monitored_file, 'r').read()
 
 
 def get_page():
@@ -34,23 +73,21 @@ def get_page():
 
 trees_loader = None
 
-from functools import partial
+if (len(sys.argv) < 2):
+    print("Usage: python2 web.py (file|remote) (file_path|remote_name)")
+    sys.exit(0)
 
-loader = sys.argv[1]
-if (loader == 'remote'):
+monitoring_type = sys.argv[1]
+
+if (monitoring_type == 'remote'):
     trees_loader = get_page
-    monitored_host = sys.argv[2]
-elif (loader == 'file'):
-    trees_loader = partial(get_from_file, sys.argv[2])
+    set_monitored_host(sys.argv[2])
+elif (monitoring_type == 'file'):
+    trees_loader = get_from_file
+    set_monitored_file(sys.argv[2]);
 else:
     print("Unknown argument 1")
     sys.exit(1)
-
-trees = {}
-last_actions_trees = {}
-actions_with_name = {}
-min_timestamp = None
-max_timestamp = None
 
 def process_tree(tree):
     tree_id = tree['id']
@@ -169,16 +206,24 @@ import thread
 import time
 
 
-def update_trees(delay):
+def update_trees():
+    try:
+        for tree in get_trees(trees_loader()):
+            process_tree(tree)
+    except:
+        print('Failed to download')
+
+
+def update_trees_thread(delay):
     while True:
-        try:
-            for tree in get_trees(trees_loader()):
-                process_tree(tree)
-        except:
-            print('Failed to download')
+        update_trees()
         time.sleep(delay)
 
-thread.start_new_thread(update_trees, (5, ))
+
+if (monitoring_type == "remote"):
+    thread.start_new_thread(update_trees_thread, (5, ))
+else:
+    update_trees()
 
 @app.route('/')
 @app.route('/index')
@@ -187,16 +232,29 @@ def index():
 
     stacked_histograms_content = render_template("stacked_histograms_list.html", histograms=render_stacked_histograms())
 
-    return render_template("index.html", host=monitored_host,
+    return render_template("index.html", message=monitoring_message,
+                           monitoring_type=monitoring_type,
+                           filename=monitored_file,
+                           host=monitored_host,
                            trees_number=len(trees),
                            stacked_histograms_content=stacked_histograms_content,
                            trees_content=trees_content)
+
 
 @app.route('/set_host', methods=['POST'])
 def set_host():
     global monitored_host
     host = request.form['host']
-    monitored_host = host
+    set_monitored_host(host)
+    return redirect('/')
+
+
+@app.route('/set_file', methods=['POST'])
+def set_file():
+    global monitored_file
+    filename = request.form['filename']
+    set_monitored_file(filename)
+    update_trees()
     return redirect('/')
 
 if __name__ == '__main__':

@@ -8,12 +8,21 @@
     <script type="text/javascript" src="http://www.amcharts.com/lib/3/themes/none.js"></script>
   </head>
   <body>
-      <form action="/set_host" method="post">
-          <input type="text" name="host" value={{host}}></input>
-          <input type="submit" value="Set host"></input>
-      </form>
+      {% if monitoring_type == "remote" %}
+         <form action="/set_host" method="post">
+           <input type="text" name="host" value={{host}}></input>
+           <input type="submit" value="Set host"></input>
+         </form>
+      {% endif %}
 
-      <h2>Monitored elliptics server: "{{host}}"</h2>
+      {% if monitoring_type == "file" %}
+         <form action="/set_file" method="post">
+           <input type="text" name="filename" value={{filename}}></input>
+           <input type="submit" value="Set file"></input>
+         </form>
+      {% endif %}
+
+      <h2>{{message}}</h2>
       <h3>Trees number: {{trees_number}}</h3>
 
       <script class="javascript">
